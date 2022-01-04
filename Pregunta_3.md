@@ -1,6 +1,6 @@
-# Enumere brevemente las propuestas más comunes en los lenguajes de programación C#, Python, Java, Go y JavaScript.
+# Enumere brevemente las propuestas más comunes en los lenguajes de programación _C#_, _Python_, _Java_, _Go_ y _JavaScript_
 
-## Go
+## _Go_
 
 Primero que todo el recolector de basura de _Go_ es un recolector de basura **no generacional**, **concurrente**, **tricolor** de **marca y barrido**.
 
@@ -8,17 +8,17 @@ Primero que todo el recolector de basura de _Go_ es un recolector de basura **no
 
  La hipótesis generacional asume que los objetos de corta duración, como las variables temporales, se liberan con mayor frecuencia. Por lo tanto, un **Garbage Collector** generacional se centra en los objetos asignados recientemente. Sin embargo, mencionamos previamente, las optimizaciones del compilador permiten que el compilador de _Go_ asigne objetos con una vida útil conocida a _stack_. Esto significa que habrá menos objetos en el _heap_, por lo que se recolectarán menos objetos como basura. Esto significa que un **Garbage Collector** generacional no es necesario en _Go_. Entonces, _Go_ usa un recolector de basura no generacional. Concurrente significa que el **Garbage Collector** se ejecuta al mismo tiempo que los restantes hilos del programa. Por lo tanto, _Go_ utiliza un recolector de basura **concurrente**, **no generacional**, **marca y barrido** (mark and sweep) es el tipo de **Garbage Collector** y **tricolor** es el algoritmo utilizado para implementar esto.
 
-## JavaScript
+## _JavaScript_
 
-La noción principal de los algoritmos de recolección se basan en la noción de ``referencia``.  Dentro del contexto de gestión de memoria, se dice que un objeto hace referencia a otro si el primero tiene acceso al segundo (ya sea de forma implícita o explícita). Por ejemplo, un objeto de JavaScript guarda una referencia a su prototipo (``referencia implícita``) y a cualquiera de los valores de sus propiedades (``referencia explícita``).
+La noción principal de los algoritmos de recolección se basan en la noción de ``referencia``.  Dentro del contexto de gestión de memoria, se dice que un objeto hace referencia a otro si el primero tiene acceso al segundo (ya sea de forma implícita o explícita). Por ejemplo, un objeto de _JavaScript_ guarda una referencia a su prototipo (``referencia implícita``) y a cualquiera de los valores de sus propiedades (``referencia explícita``).
 
-Hay que mencionar que en este contexto la noción de "objeto" se refiere a algo más amplio que los objetos normales de JavaScript y que también incluye al ámbito de la función (o ámbito de léxico global).
+Hay que mencionar que en este contexto la noción de "objeto" se refiere a algo más amplio que los objetos normales de _JavaScript_ y que también incluye al ámbito de la función (o ámbito de léxico global).
 
-#### Usando conteo por referencias:
+### Usando conteo por referencias
 
 Éste es el algoritmo de recolección más simple. Este algoritmo reduce la definición de "un objejo ya no es necesario" a "un objeto ya no tiene ningún otro objeto que lo referencie". Un objeto es considerado recolectable si existen cero referencias hacia él.
 
-Ejemplo:
+Ejemplo 1:
 
 ```Javascript
 var o = {
@@ -79,7 +79,8 @@ f();
 
 Internet Explorer 6 y 7 son conocidos por tener recolectores de basura por conteo de referencias para los objetos del ``DOM``. Los ciclos son un error común que pueden generar fugas de memoria (memory leaks).
 
-Ejemplo2:
+Ejemplo 2:
+
 ```Javascript
 var div;
 window.onload = function(){
@@ -91,58 +92,20 @@ window.onload = function(){
 
 En el ejemplo anterior, el elemento del DOM "miDiv" posée una referencia circular a sí mismo en la propiedad "referenciaCircular". Si la propiedad no es explícitamente removida o asignada con el valor null,  un algoritmo de conteo de referencias siempre va a dejar por lo menos una referencia intacta y va a mantener el elemento del DOM activo en memoria incluso cuando es removido del DOM. Si el objeto del DOM contiene una gran cantidad de datos (ejemplificado en la propiedad "muchosDatos"), la memoria consumida por estos datos nunca será liberada.
 
-#### Algoritmo **Mark-and-sweep(Marcado y barrido)**:
+## _Python_
 
-Este algoritmo reduce la definición de "un objeto ya no es necesitado" a "un objeto es inalcanzable"
+El proceso de reservar y liberar memoria en _Python_ es automático. El programador no tiene que reservar o Liberar memoria a diferencia de lenguajes con mecanismos de reserva dinámica de memoria como _C_ y _C++_. _Python_ usa dos estrategias para la reserva de memoria:
 
-Este algoritmo asume la noción de un grupo de objetos llamados objetos raíz (en JavaScript la raíz es el objeto global). Periódicamente el recolector empieza por estas raíces, encuentra todos los objetos que están referenciados por estas raíces, y luego todos los objetos referenciados de estos, etc. Empezando por las raíces, el recolector de esta forma encontrará todos los objetos que son alcanzables y recolectará los objetos inalcanzables.
-
-Este algoritmo es mejor que el anterior ya que "un objeto tiene cero referencias" equivale al "objeto es inalcanzable". Esto no sucedía asi en el algoritmo anterior cuando se trataba de un ciclo.
-
-Desde el 2012, todos los navegadores incluyen un recolector de basura basado en mark-and-sweep. Todas las mejoras realizadas en el campo de Recolección de basura en JavaScript (recolección generacional/incremental/concurrida/paralela) en los ultimos años son mejoras a la implementación del algoritmo, pero no mejoras sobre el algoritmo de recolección ni a la reducción de la definicion de cuando"un objeto ya no es necesario".
-
-La siguiente visualización muestra el proceso:
-
-``1.``
-<img src="./Images/javascript1.png" style="zoom: 67%;" />
-
-``2.``
-<img src="./Images/javascript2.png" style="zoom: 67%;" />
-
-``3.``
-<img src="./Images/javascript3.png" style="zoom: 67%;" />
-
-``4.``
-<img src="./Images/javascript4.png" style="zoom: 67%;" />
-
-``5.``
-<img src="./Images/javascript5.png" style="zoom: 67%;" />
-
-``6.``
-<img src="./Images/javascript6.png" style="zoom: 67%;" />
-
-
-
-## Python
-
-El proceso de allocation y deallocation de memoria en Python es automático. El programador no tiene que 
-que preallocate o deallocate a diferencia de lenguajes con memory allocation dinámica como C y C++.
-Python usa dos estrategias para la allocation de memoria:
 * Reference Counting
 * Garbage Collection
 
-### Reference Counting 
-__Reference counting__ lo que hace es contar el número de veces que un objeto es referenciado por otro objeto en el sistema. Cuando la referencias a un objeto son removidas, el __reference count__ de ese objeto es decrementado. Cuando el reference count llega a 0, el objeto es liberado(deallocated).
-
-Por ejemplo, supongamos que tenemos 2 o más variables que tienen el mismo valor, entonces, lo que la máquina virtual de Python hace es, en vez de crear otro objeto del mismo valor en el heap privado, en realidad hace que la segunda variable apunte al valor que originalmente existía en el heap privado. Por lo tanto, en el caso de clases, tener un número de referencias puede ocupar una gran cantidad de espacio en memoria, en dicho caso referencing counting es altamente beneficioso para preservar la memoria disponible para otros objetos.
-
-#### Ejemplo1:
+## Ejemplo 1:
 
 ```Python
 x = 10
 ```
 
-Cuando ```x = 10```  se ejecuta un objeto de tipo integer 10 es creado en memoria y su referencia es asignada a la variable x, esto es debido a que todo es un objeto en Python.
+Cuando ```x = 10```  se ejecuta un objeto de tipo integer 10 es creado en memoria y su referencia es asignada a la variable x, esto es debido a que todo es un objeto en _Python_.
 
 ![Example1](./Images/python1.png)
 
@@ -162,7 +125,7 @@ Output:
 x and y refer to the same object
 ```
 
-En el ejemplo anterior, ``y = x`` crea otra variable de referencia y la cual hace referencia al mismo objeto debido a que Python optimiza la utilización de memoria haciendo la asignación (allocation) de una mismo referencia de un objeto a una nueva variable si este objeto ya existia previamente con el mismo valor.
+En el ejemplo anterior, ``y = x`` crea otra variable de referencia y la cual hace referencia al mismo objeto debido a que _Python_ optimiza la utilización de memoria haciendo la asignación (allocation) de una mismo referencia de un objeto a una nueva variable si este objeto ya existia previamente con el mismo valor.
 
 ![Example2](./Images/python2.png)
 
@@ -187,7 +150,7 @@ referenciando a ``10``
 
 ![Example3](./Images/python3.png)
 
-#### Ejemplo2:
+### Ejemplo 2:
 
 ```Python
 
@@ -214,13 +177,11 @@ del x
 # x = None
 ```
 
-El reference count para la lista creada es ahora 2. Sin embargo, no puede ser alcanzado desde dentro de Python y no 
-puede ser posible usarlo de nuevo, esto es considerado basura(garbage). Esta lista por tanto nunca es liberada(freed).
-
+El reference count para la lista creada es ahora 2. Sin embargo, no puede ser alcanzado desde dentro de _Python_ y no puede ser posible usarlo de nuevo, esto es considerado basura(garbage). Esta lista por tanto nunca es liberada(freed).
 
 #### Garbage collection automática de ciclos:
 
-Debido que a los ciclos de referencia(reference cycles) toman un costo computacional para descubrirse, el garbage collection debe ser una actividad programada. Python programa el garbage collection basado en la cantidad límite(threshold) de objetos asignados(object allocations) y objetos liberados(object deallocations). Cuando el número de alloctions menos el número de dealloactions es mayor que el threshold, el garbage collector se ejecutará. Uno puede inspeccionar el threshold para nuevos objetos importando en módulo  ``gc`` y preguntando por el garbage collection thresholds:
+Debido que a los ciclos de referencia(reference cycles) toman un costo computacional para descubrirse, el garbage collection debe ser una actividad programada. _Python_ programa el garbage collection basado en la cantidad límite(threshold) de objetos asignados(object allocations) y objetos liberados(object deallocations). Cuando el número de alloctions menos el número de dealloactions es mayor que el threshold, el garbage collector se ejecutará. Uno puede inspeccionar el threshold para nuevos objetos importando en módulo  ``gc`` y preguntando por el garbage collection thresholds:
 
 ```Python
 # loading gc
@@ -315,5 +276,4 @@ Garbage collector: collected 10 objects.
 Hay 2 formas de realizar el garbage collection de forma manual : basado en el tiempo(``time-based``) y basado en un evento(``event-based``)
 
 1. **Time-based**: Es simple el garbage collector es llamado luego de un intervalo de tiempo prefijado.
-2. **Even-based**: Se llama al garbage collector dada la ocurrencia de un evento. Por ejemplo, cuando un usuario cierra la aplicación o cuando la aplicación entra en un estado ``idle``. 
-
+2. **Even-based**: Se llama al garbage collector dada la ocurrencia de un evento. Por ejemplo, cuando un usuario cierra la aplicación o cuando la aplicación entra en un estado ``idle``.

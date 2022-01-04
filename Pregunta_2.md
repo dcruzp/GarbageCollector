@@ -1,32 +1,72 @@
-# Estrategias 
+# Estrategias
 
-### Traicing garbage collection 
-Traicin garbage collection es una forma de manejo de memoria automatica que consiste en determinar que objetos deben ser desasignado. Rastreando que objetos son alcanzables por una cadena de referencias de ciertas objetos "root", y considerando el resto como "basura" y recolectando estos. Traicing garbage collection es la forma mas comun de recoleccion de basura, tanto es asi que "garbage collection" se refiere al "Traicing garbage collection", en lugar de a otros metodos como el recuento de referencias y hay una gran cantidad de algoritmos utilizados en la implementacion.
+## **Mark-and-sweep (Marcado y barrido)**
 
-#### Accecibilidad de un objeto. 
-Informalmente un objeto es accecible si este es referenciado por por al menos una variable en el programa, ya sea directamente o mediante referencias de otros objetos accecibles. Mas especificamente, se puede acceder a los objetos solo de dos formas: 
-- Un distiguido conjunto de roots: objetos que son asumidos son alcanzables. Typicamente, eso include todos los objetos referenciados de cualquier parte en la "Pila de llamadas"(que son todas las variables y parametros locales en la funcion que se estan invocando actualmente) y caulquiera varaible global.
-- cualquiera referencia de un objeto accecible es accecible, mas formalmente, accecibilidad es transitiva.
+Este algoritmo reduce la definición de "un objeto ya no es necesitado" a "un objeto es inalcanzable"
 
-La definicion de accesibilidad de "basura" no es optima, en la medida en que la ultima vez que un programa usa un objeto podria ser mucho antes de que ese objeto caiga fuera del alcance del entorno. A veces se hace una distincion entre basura sintactica (aquellos objetos que el programa posiblemente no pueda alcanzar) y basura semantica (esos obejtos que el programa nunca volvera a usar)
+Este algoritmo asume la noción de un grupo de objetos llamados objetos raíz (en _JavaScript_ la raíz es el objeto global). Periódicamente el recolector empieza por estas raíces, encuentra todos los objetos que están referenciados por estas raíces, y luego todos los objetos referenciados de estos, etc. Empezando por las raíces, el recolector de esta forma encontrará todos los objetos que son alcanzables y recolectará los objetos inalcanzables.
 
-El problema de identificar con presicion la basura semantica es parciamente decidible: un programa que asigna un objeto X, ejecuta un programa de entrada arbitrario P termina, requeriria un recolecor de basura semantica para resolver resolver el problema de la deteccion. Aunque los metodos heuristicos conservadores para las deteccion de basura semantica siguen siendo un area de investigacion activa, escencialmente todos los recolectores de basura practicos se enfocan en la basura sintactica.
+Este algoritmo es mejor que el anterior ya que "un objeto tiene cero referencias" equivale al "objeto es inalcanzable". Esto no sucedía asi en el algoritmo anterior cuando se trataba de un ciclo.
 
-Otra complicacion con este enfoque es que, en lenguajes con tipos de referencia y tipos por valor sin caja, el recolector de basura necesita de alguna manera porder distinguir que varaibles en la pila o campos en un objeto son valores regulares y cuales son referencias: en la memoria, un numero entero y una referencia pueden parecerse. El recolector de basura necesita saber si tratar el elemento como una referencia y seguirlo, o si es un valor primitivo. Una solucion comun es el uso de punteros etiquetados. 
+Desde el 2012, todos los navegadores incluyen un recolector de basura basado en mark-and-sweep. Todas las mejoras realizadas en el campo de Recolección de basura en _JavaScript_ (recolección generacional/incremental/concurrida/paralela) en los ultimos años son mejoras a la implementación del algoritmo, pero no mejoras sobre el algoritmo de recolección ni a la reducción de la definicion de cuando "un objeto ya no es necesario".
 
-#### Weak collections
-Se peuden disenar estructuras de datos que tengan caractersiticas de seguimiento debiles. Por ejemplo las tables hash debil son utiles. Al igual que la tablas Hash normal, una tabla hash debil mantiene una asocioacion entre un pares de objetos, donde cada clave se entiende como una clave y un valor. Sin embargo la tabla hash no mantiene una referencia solida sobre estos objetos. Se produce en compertamiento especial cuando la clave, el valor o ambos se convierten en basura: la entrada de la tablas hash se elimina espontaneamente. Existen mas refinamientos, como tablas hash que solo tienen claves debiles(las referencias de valor son referencias ordinarias, fuertes) o solo valores debiles(las referencias de claves son fuertes)
+La siguiente visualización muestra el proceso:
+
+``1.``
+<img src="./Images/javascript1.png" style="zoom: 67%;" />
+
+``2.``
+<img src="./Images/javascript2.png" style="zoom: 67%;" />
+
+``3.``
+<img src="./Images/javascript3.png" style="zoom: 67%;" />
+
+``4.``
+<img src="./Images/javascript4.png" style="zoom: 67%;" />
+
+``5.``
+<img src="./Images/javascript5.png" style="zoom: 67%;" />
+
+``6.``
+<img src="./Images/javascript6.png" style="zoom: 67%;" />
+
+### **Reference Counting (Conteo de referencias)**
+
+__Reference counting__ lo que hace es contar el número de veces que un objeto es referenciado por otro objeto en el sistema. Cuando la referencias a un objeto son removidas, el __reference count__ de ese objeto es decrementado. Cuando el reference count llega a 0, el objeto es liberado(deallocated).
+
+Por ejemplo, supongamos que tenemos 2 o más variables que tienen el mismo valor, entonces, lo que la máquina virtual de _Python_ hace es, en vez de crear otro objeto del mismo valor en el **heap** privado, en realidad hace que la segunda variable apunte al valor que originalmente existía en el **heap** privado. Por lo tanto, en el caso de clases, tener un número de referencias puede ocupar una gran cantidad de espacio en memoria, en dicho caso referencing counting es altamente beneficioso para preservar la memoria disponible para otros objetos.
+
+## Traicing garbage collection
+
+Traicing garbage collection es una forma de manejo de memoria automática que consiste en determinar que objetos deben ser liberados. Rastreando que objetos son alcanzables por una cadena de referencias de ciertas objetos "root", y considerando el resto como "basura" y recolectando estos. Traicing garbage collection es la forma mas común de recolección de basura, tanto es así que "garbage collection" se refiere a "traicing garbage collection", en lugar de a otros métodos como el conteo de referencias, y hay una gran cantidad de algoritmos utilizados en la implementación.
+
+## Accecibilidad de un objeto
+
+Informalmente un objeto es accesible si este es referenciado por al menos una variable en el programa, ya sea directamente o mediante referencias de otros objetos accecibles. Más especificamente, se puede acceder a los objetos solo de dos formas:
+
+- Un distiguido conjunto de roots: objetos que son asumidos son alcanzables. Típicamente, eso include todos los objetos referenciados de cualquier parte en la "Pila de llamadas"(que son todas las variables y parametros locales en la función que se estan invocando actualmente) y culquier variable global.
+- cualquiera referencia de un objeto accecible es accesible, mas formalmente, accesibilidad es transitiva.
+
+La definición de accesibilidad de "basura" no es óptima, en la medida en que la última vez que un programa usa un objeto podría ser mucho antes de que ese objeto caiga fuera del alcance del entorno. A veces se hace una distinción entre basura sintáctica (aquellos objetos que el programa posiblemente no pueda alcanzar) y basura semántica (esos objetos que el programa nunca volverá a usar)
+
+El problema de identificar con precisión la basura semántica es parciamente decidible: un programa que asigna un objeto X, ejecuta un programa de entrada arbitrario P termina, requeriria un recolector de basura semántica para resolver resolver el problema de la detección. Aunque los métodos heurísticos conservadores para las detección de basura semántica siguen siendo un area de investigación activa, escencialmente todos los recolectores de basura prácticos se enfocan en la basura sintáctica.
+
+Otra complicación con este enfoque es que, en lenguajes con tipos de referencia y tipos por valor sin caja, el recolector de basura necesita de alguna manera poder distinguir que varaibles en la pila o campos en un objeto son valores regulares y cuales son referencias: en la memoria, un número entero y una referencia pueden parecerse. El recolector de basura necesita saber si tratar el elemento como una referencia y seguirlo, o si es un valor primitivo. Una solución común es el uso de punteros etiquetados.
+
+## Colecciones débiles (Weak collections)
+
+Se pueden diseñar estructuras de datos que tengan características de seguimiento débiles. Por ejemplo las tablas hash débil son útiles. Al igual que la tablas Hash normal, una tabla hash dðbil mantiene una asociación entre un pares de objetos, donde cada clave se entiende como una clave y un valor. Sin embargo la tabla hash no mantiene una referencia sólida sobre estos objetos. Se produce un comportamiento especial cuando la clave, el valor o ambos, se convierten en basura: la entrada de la tablas hash se elimina espontáneamente. Existen mas refinamientos, como tablas hash que solo tienen claves débiles(las referencias de valor son referencias ordinarias, fuertes) o solo valores débiles(las referencias de claves son fuertes)
 
 Las tablas hash débiles son importantes para mantener asociaciones entre objetos, de modo que los objetos involucrados en la asociación aún pueden convertirse en basura si ya nada en el programa se refiere a ellos (aparte de la tabla hash asociada).
 
 El uso de una tabla hash regular para tal propósito podría conducir a una "pérdida de memoria lógica": la acumulación de datos alcanzables que el programa no necesita y no usará.
 
-#### Performance
-El rendimiento de los recolectores de basura de seguimiento, tanto la latencia como el rendimiento, depende significativamente de la implementacion, la carga de trabajo y el entorno. Las impleemntaciones lazy o el uso en entornos con mucha memoria restringida, especialmente los sistemas integrados, pueden resutar en un rendimiento muy deficiente en comparacion con otros metodos, mientras que las implementaciones sofisticadas y el uso en entornos con mucha memoria puede dar como resultado un rendimiento excelente. 
+## Rendimiento (Performance)
 
-En terminos de rendimiento el seguimiento, por su naturaleza, requiere una sobrecarga de tiempo de ejecucion implicita, aunque en algunos casos el costo amortizado puede ser extremadamente bajo, en algunos casos incluso menor que una instruccion por asignacion o coleccion, superando la asignacion de pila. La gestion manual de la memoria requiere sobrecarga debido a la liberacion explicita de memoria, y el recuento de referencias tiene sobrecarga por incrementar y disminuir los recuentos de referencia y comprobar si el recuento se ha desbordado o ha caido a cero.
+El rendimiento de los recolectores de basura de seguimiento, tanto la latencia como el rendimiento, depende significativamente de la implementacion, la carga de trabajo y el entorno. Las impleemntaciones lazy o el uso en entornos con mucha memoria restringida, especialmente los sistemas integrados, pueden resutar en un rendimiento muy deficiente en comparacion con otros métodos, mientras que las implementaciones sofisticadas y el uso en entornos con mucha memoria puede dar como resultado un rendimiento excelente.
 
-En terminos de latencia, los recolectores de basura simple de "stop-the-world" pausan la ejecucion del programa para la recoleccion de basura, lo que puede suceder en momentos arbitrarios y tomar un tiempo arbitrario, lo que los hace inutilizable para la computacion en tiempo real, especialmente los sistemas integrados, y no se ajustan bien a los sistemas interactivos o cualquier situacion en la que la baja latencia sea una prioridad. Sin embrago, los recolectores de basura incrementales pueden proporcionar garantias estrictas en tiempo real y en sistemas con tiempo de inactividad frecuente y suficiente memoria libre, como computadoras personales, la recoleccion de basura se puede programar tiempos de inactividad y tener un impacto minimo en el rendimiento interactivo. La administracion de memoria manual (como en C++) y el conteo de referencias tienen un problema similar de pausas arbitrariamente largas en caso de desasignar una estructura de datos grande y todos sus elementos secuendarios, aunque esto solo ocurre en momentos fijos, no dependiendo de la recoleccion de basura.
+En términos de rendimiento el seguimiento, por su naturaleza, requiere una sobrecarga de tiempo de ejecucion implícita, aunque en algunos casos el costo amortizado puede ser extremadamente bajo, en algunos casos incluso menor que una instruccion por asignacion o coleccion, superando la asignacion de pila. La gestion manual de la memoria requiere sobrecarga debido a la liberación explícita de memoria, y el recuento de referencias tiene sobrecarga por incrementar y disminuir los recuentos de referencia y comprobar si el recuento se ha desbordado o ha caido a cero.
 
-Algunos avances en la recoleccion de basura pueden entenderse como reacciones a problemas de rendimiento. Los primeros coleccionistas eran coleccionistas de "stop-the-world", pero el rendimiento de este enfoque distraia la atencion de las aplicaciones interactivas. La recoleccion incremental evito esta interrupcion, pero a costa de una menor eficiencia debido a la necesidad de barreras. Las tecnicas de recoleccion generacional se utilizan con recolectores incrementales y "stop-the-world" para aumentar el rendimiento, la compensacion es que parte de la basura no se detecta como tal durante mas tiempo de lo normal. 
+En términos de latencia, los recolectores de basura simple de "stop-the-world" pausan la ejecución del programa para la recolección de basura, lo que puede suceder en momentos arbitrarios y tomar un tiempo arbitrario, lo que los hace inutilizable para la computación en tiempo real, especialmente los sistemas integrados, y no se ajustan bien a los sistemas interactivos o cualquier situación en la que la baja latencia sea una prioridad. Sin embrago, los recolectores de basura incrementales pueden proporcionar garantías estrictas en tiempo real y en sistemas con tiempo de inactividad frecuente y suficiente memoria libre, como computadoras personales, la recoleccion de basura se puede programar tiempos de inactividad y tener un impacto mínimo en el rendimiento interactivo. La administración de memoria manual (como en _C++_) y el conteo de referencias tienen un problema similar de pausas arbitrariamente largas en caso de desasignar una estructura de datos grande y todos sus elementos secundarios, aunque esto solo ocurre en momentos fijos, no dependiendo de la recolección de basura.
 
+Algunos avances en la recolección de basura pueden entenderse como reacciones a problemas de rendimiento. Los primeros coleccionistas eran coleccionistas de "stop-the-world", pero el rendimiento de este enfoque distraia la atención de las aplicaciones interactivas. La recolección incremental evito esta interrupcion, pero a costa de una menor eficiencia debido a la necesidad de barreras. Las técnicas de recolección generacional se utilizan con recolectores incrementales y "stop-the-world" para aumentar el rendimiento, la compensación es que parte de la basura no se detecta como tal durante más tiempo de lo normal.

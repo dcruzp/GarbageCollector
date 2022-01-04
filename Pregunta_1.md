@@ -15,7 +15,7 @@ Ventajas:
 
 1. Exime al programador de la responsabilidad de liberar manualmente la memoria (lo que puede causar lo que se conoce como _memory leak_ en lenguajes con manejo de memoria manual como _C/C++_), y le permite enfocarse exclusivamente en el programa, e ignorar por completo el manejo de memoria.
 
-2. Permite reservar memoria para objetos en el **heap** de forma eficiente
+2. Permite reservar memoria para objetos en el **heap** de forma eficiente.
 
 3. Se encarga de liberar la memoria reservada para ciertos objetos que ya no está siendo referenciada, permitiendo así el uso de esta memoria para futuras asignaciones.
 
