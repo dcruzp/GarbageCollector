@@ -277,3 +277,29 @@ Hay 2 formas de realizar el garbage collection de forma manual : basado en el ti
 
 1. **Time-based**: Es simple el garbage collector es llamado luego de un intervalo de tiempo prefijado.
 2. **Even-based**: Se llama al garbage collector dada la ocurrencia de un evento. Por ejemplo, cuando un usuario cierra la aplicación o cuando la aplicación entra en un estado ``idle``.
+
+
+## C# 
+
+La gestión automática de la memoria es posible gracias a Garbage Collection en .NET Framework. Cuando se crea un objeto de clase en tiempo de ejecución, se le asigna cierto espacio de memoria en la memoria del heap. Sin embargo, después de que todas las acciones relacionadas con el objeto se hayan completado en el programa, el espacio de memoria asignado es un desperdicio, ya que no se puede utilizar. En este caso, la recolección de basura es muy útil ya que libera automáticamente el espacio de memoria cuando ya no es necesario.
+La recolección de basura siempre funcionará en Managed Heap e internamente tiene un motor que se conoce como el motor de optimización.
+
+La recolección de basura se produce si se cumple al menos una de varias condiciones. Estas condiciones se dan de la siguiente manera:
+
+  - Si el sistema tiene poca memoria fisica, entonces las recoleccion de basura es necesaria.
+  - Si la memoria asignada a varios objetos en la memoria del heap excede un el espacio preestablecido, entonces ocurre la recolección de basura.
+  - Si se llama al método ```GC.Collect```, se produce la recolección de basura. Sin embargo, este método solo se llama en situaciones inusuales, ya que normalmente el recolector de basura se ejecuta automáticamente. 
+
+Existen 3 fases principales en la recoleccion de basura:
+  - **Marking Phase(Fase de marcado):** se crea una lista de todos los objetos activos durante la fase de marcado. Esto se hace siguiendo las referencias de todos los objetos raíz. Todos los objetos que no están en la lista de objetos activos se eliminan potencialmente de la memoria del heap.
+  - **Relocating Phase(Fase de reubicación):**: Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se reubicarán los objetos en la fase de compactación. 
+  - **Compacting Phase(Fase de compactación)**: El montón se compacta en la fase de compactación a medida que se libera el espacio ocupado por los objetos muertos y se mueven los objetos vivos restantes. Todos los objetos activos que quedan después de la recolección de elementos no utilizados se mueven hacia el extremo anterior de la memoria del heap en su orden original.
+
+La memoria del heap está organizada en 3 generaciones para que varios objetos con diferentes tiempos de vida puedan manejarse apropiadamente durante la recolección de basura. Common Language Runtime (CLR) proporcionará la memoria a cada generación en función del tamaño del proyecto. Internamente, Optimization Engine llamará al método de medios de recolección para seleccionar qué objetos entrarán en la generación 1 o la generación 2. 
+
+  - **Generación 0:** todos los objetos de corta duración, como las variables temporales, están contenidos en la generación 0 de la memoria del montón. Todos los objetos recién asignados también son objetos de generación 0 implícitamente a menos que sean objetos grandes. En general, la frecuencia de recolección de basura es la más alta en la generación 0. 
+  - **Generación 1:** si el espacio ocupado por algunos objetos de generación 0 que no se liberan en una ejecución de recolección de basura, estos objetos se mueven a la generación 1. Los objetos de esta generación son una especie de búfer entre los objetos de corta duración en la generación 0 y los objetos longevos de la generación 2. 
+  - **Generacion 2:** si el espacio ocupado por algunos objetos de la generación 1 que no se liberan en la siguiente ejecución de recolección de basura, estos objetos se mueven a la generación 2. Los objetos de la generación 2 tienen una vida larga, como los objetos estáticos, ya que permanecen en la memoria del montón. durante todo el proceso.
+
+La recolección de basura de una generación implica la recolección de basura de todas sus generaciones más jóvenes. Esto significa que se liberan todos los objetos de esa generación en particular y sus generaciones más jóvenes. Por este motivo, la recolección de elementos no utilizados de la generación 2 se denomina recolección de elementos no utilizados completa, ya que se liberan todos los objetos de la memoria dinámica. Además, la memoria asignada a la Generación 2 será mayor que la memoria de la Generación 1 y, de manera similar, la memoria de la Generación 1 será mayor que la memoria de la Generación 0 (Generación 2> Generación 1> Generación 0).
+
