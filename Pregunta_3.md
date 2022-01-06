@@ -311,11 +311,11 @@ La operación de **recolección de basura** se basa en la premisa de que la mayo
 Hay dos tipos de **recolección de basura** que generalmente ocurren en _Java_:
 
 * Se dice que se ha producido una **recolección de basura** menor o incremental cuando se eliminan los objetos inalcanzables en la memoria del **heap** de generación joven.
-* Se dice que se ha producido una **recolección de basura** mayor o completa cuando se eliminan los objetos que sobrevivieron a la **recolección de basura** menor y se copiaron en la memoria del **heap** de generación anterior o permanente. En comparación con la generación joven, la **recolección de basura** ocurre con menos frecuencia en la generación anterior.
+* Se dice que se ha producido una **recolección de basura** mayor o completa cuando se eliminan los objetos que sobrevivieron a la **recolección de basura** menor y se copiaron en la memoria del **heap** de generación anterior o permanente. En comparación con la generación joven, la **recolección de basura** completa ocurre con menos frecuencia en la generación anterior.
 
 Para liberar memoria, la JVM debe detener la ejecución de la aplicación durante al menos un breve período de tiempo y ejecutar **recolección de basura**. Este proceso se llama "stop-the-world". Esto significa que todos los subprocesos, excepto los subprocesos de , dejarán de ejecutarse hasta que se ejecuten los subprocesos de **recolección de basura** y el recolector de basura libere los objetos.
 
-Las implementaciones modernas de **recolección de basura** intentan minimizar el bloqueo de las paradas de "detener el mundo" haciendo todo el trabajo posible en segundo plano (es decir, utilizando un hilo separado), por ejemplo, marcando instancias de basura inaccesibles mientras el proceso de la aplicación continúa ejecutándose.
+Las implementaciones modernas de **recolección de basura** intentan minimizar las detenciones en la ejecución del programa como consecuencia del "stop-the-world" haciendo todo el trabajo posible en segundo plano (es decir, utilizando un hilo separado), por ejemplo, marcando instancias de basura inaccesibles mientras el proceso de la aplicación continúa ejecutándose.
 
 Las JVM modernas como **Azul Zing** utilizan el colector de compactación continuamente concurrente (C4), que elimina las pausas de recolección que limitan la escalabilidad en el caso de las JVM convencionales.
 

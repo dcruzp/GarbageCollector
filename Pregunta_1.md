@@ -7,7 +7,60 @@ La recolección automática de basura (**Garbage Collection**) es una forma de m
 2. Liberar la memoria usada por estos objetos.
 
 La memoria que se asigna en tiempo de compilación es almacenada en el
-**stack**, mientras que la memoria que se asigna en tiempo de ejecución se almacena en el **heap**. _C++_ nos permite asignar la memoria de una variable en tiempo de ejecución. Esto se conoce como asignación de memoria dinámica. En otros lenguajes de programación como _Java_ y _Python_, el compilador gestiona automáticamente la memoria asignada a cada variable mediante el **Garbage Collector**, y al programador le es indistinto en donde se almacena esta variable, si en el **stack** o en el **heap**, pero este no es el caso en _C++_. En _C++_, si asignamos una variable dinámicamente, necesitamos liberar manualmente la memoria asignada a esta variable después de que no tengamos uso para ella. Podemos asignar y luego liberar memoria dinámicamente usando los operadores **new** y **delete** respectivamente. Cabe destacar que el **Garbage Collector** opera sobre el **heap**, no sobre el **stack**.
+**stack**, mientras que la memoria que se asigna en tiempo de ejecución se almacena en el **heap**. _C++_ nos permite asignar la memoria de una variable en tiempo de ejecución. Esto se conoce como asignación de memoria dinámica. En otros lenguajes de programación como _Java_ y _Python_, el compilador gestiona automáticamente la memoria asignada a cada variable mediante el **Garbage Collector**, y al programador le es indistinto en donde se almacena esta variable, si en el **stack** o en el **heap**, pero este no es el caso en _C++_. En _C++_, si asignamos una variable dinámicamente, necesitamos liberar manualmente la memoria asignada a esta variable después de que no tengamos uso para ella. Podemos asignar y luego liberar memoria dinámicamente usando los operadores **new** y **delete** respectivamente como se muestra a continuación:
+
+```cpp
+#include <iostream>
+
+using namespace std;
+ 
+int main ()
+{
+    // Inicializar puntero NULL
+    int* p = NULL;
+ 
+    // reservar memoria para la variable
+    p = new(nothrow) int;
+    if (!p)
+        cout << "allocation of memory failed\n";
+    else {
+        // Store value at allocated address
+        *p = 29;
+        cout << "Value of p: " << *p << endl;
+    }
+ 
+    // Reservar bloque de memoria usando new
+    float *r = new float(75.25);
+ 
+    cout << "Value of r: " << *r << endl;
+ 
+    // Reservando bloque de memoria de tamaño n
+    int n = 5;
+    int *q = new(nothrow) int[n];
+ 
+    if (!q)
+        cout << "allocation of memory failed\n";
+    else {
+        for (int i = 0; i < n; i++)
+            q[i] = i+1;
+ 
+        cout << "Value store in block of memory: ";
+        for (int i = 0; i < n; i++)
+            cout << q[i] << " ";
+    }
+ 
+    // Liberando la memoria reservada para estas variables
+    delete p;
+    delete r;
+ 
+    // Liberando el bloque de memoria reservado para este array
+    delete[] q;
+ 
+    return 0;
+}
+```
+
+Cabe destacar que el **Garbage Collector** opera sobre el **heap**, no sobre el **stack**.
 
 El **Garbage Collector** tiene sus ventajas y desventajas:
 
