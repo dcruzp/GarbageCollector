@@ -4,9 +4,9 @@
 
 Primero que todo el recolector de basura de _Go_ es un recolector de basura **no generacional**, **concurrente**, **tricolor** de **marca y barrido**.
 
- _Go_ prefiere asignar memoria en el **stack**, por lo que la mayoría de las asignaciones de memoria terminarán allí. Esto significa que _Go_ tiene una _stack_ por **goroutine** y, cuando sea posible, _Go_ asignará variables a esta _stack_. El compilador de _Go_ intenta probar que no se necesita una variable fuera de la función realizando un análisis de escape para ver si un objeto "escapa" de la función. Si el compilador puede determinar la duración de una variable, se asignará a una _stack_. Sin embargo, si la vida útil de la variable no está clara, se asignará en el _heap_. Generalmente, si un programa _Go_ tiene un puntero a un objeto, ese objeto se almacena en el _heap_.
+ _Go_ prefiere asignar memoria en el **stack**, por lo que la mayoría de las asignaciones de memoria terminarán allí. Esto significa que _Go_ tiene una **stack** por **goroutine** y, cuando sea posible, _Go_ asignará variables a esta **stack**. El compilador de _Go_ intenta probar que no se necesita una variable fuera de la función realizando un análisis de escape para ver si un objeto "escapa" de la función. Si el compilador puede determinar la duración de una variable, se asignará a una **stack**. Sin embargo, si la vida útil de la variable no está clara, se asignará en el **heap**. Generalmente, si un programa _Go_ tiene un puntero a un objeto, ese objeto se almacena en el **heap**.
 
- La hipótesis generacional asume que los objetos de corta duración, como las variables temporales, se liberan con mayor frecuencia. Por lo tanto, un **Garbage Collector** generacional se centra en los objetos asignados recientemente. Sin embargo, mencionamos previamente, las optimizaciones del compilador permiten que el compilador de _Go_ asigne objetos con una vida útil conocida a _stack_. Esto significa que habrá menos objetos en el _heap_, por lo que se recolectarán menos objetos como basura. Esto significa que un **Garbage Collector** generacional no es necesario en _Go_. Entonces, _Go_ usa un recolector de basura no generacional. Concurrente significa que el **Garbage Collector** se ejecuta al mismo tiempo que los restantes hilos del programa. Por lo tanto, _Go_ utiliza un recolector de basura **concurrente**, **no generacional**, **marca y barrido** (mark and sweep) es el tipo de **Garbage Collector** y **tricolor** es el algoritmo utilizado para implementar esto.
+ La hipótesis generacional asume que los objetos de corta duración, como las variables temporales, se liberan con mayor frecuencia. Por lo tanto, un **Garbage Collector** generacional se centra en los objetos asignados recientemente. Sin embargo, mencionamos previamente, las optimizaciones del compilador permiten que el compilador de _Go_ asigne objetos con una vida útil conocida al **stack**. Esto significa que habrá menos objetos en el **heap**, por lo que se recolectarán menos objetos como basura. Esto significa que un **Garbage Collector** generacional no es necesario en _Go_. Entonces, _Go_ usa un recolector de basura no generacional. Concurrente significa que el **Garbage Collector** se ejecuta al mismo tiempo que los restantes hilos del programa. Por lo tanto, _Go_ utiliza un recolector de basura **concurrente**, **no generacional**, **marca y barrido** (mark and sweep) es el tipo de **Garbage Collector** y **tricolor** es el algoritmo utilizado para implementar esto.
 
 ## _JavaScript_
 
@@ -14,7 +14,7 @@ La noción principal de los algoritmos de recolección se basan en la noción de
 
 Hay que mencionar que en este contexto la noción de "objeto" se refiere a algo más amplio que los objetos normales de _JavaScript_ y que también incluye al ámbito de la función (o ámbito de léxico global).
 
-### Usando conteo por referencias
+## Usando conteo por referencias
 
 Éste es el algoritmo de recolección más simple. Este algoritmo reduce la definición de "un objejo ya no es necesario" a "un objeto ya no tiene ningún otro objeto que lo referencie". Un objeto es considerado recolectable si existen cero referencias hacia él.
 
@@ -99,7 +99,7 @@ El proceso de reservar y liberar memoria en _Python_ es automático. El programa
 * Reference Counting
 * Garbage Collection
 
-## Ejemplo 1:
+### Ejemplo 1:
 
 ```Python
 x = 10
@@ -179,9 +179,9 @@ del x
 
 El reference count para la lista creada es ahora 2. Sin embargo, no puede ser alcanzado desde dentro de _Python_ y no puede ser posible usarlo de nuevo, esto es considerado basura(garbage). Esta lista por tanto nunca es liberada(freed).
 
-#### Garbage collection automática de ciclos:
+### Garbage collection automática de ciclos:
 
-Debido que a los ciclos de referencia(reference cycles) toman un costo computacional para descubrirse, el garbage collection debe ser una actividad programada. _Python_ programa el garbage collection basado en la cantidad límite(threshold) de objetos asignados(object allocations) y objetos liberados(object deallocations). Cuando el número de alloctions menos el número de dealloactions es mayor que el threshold, el garbage collector se ejecutará. Uno puede inspeccionar el threshold para nuevos objetos importando en módulo  ``gc`` y preguntando por el garbage collection thresholds:
+Debido que a los ciclos de referencia(reference cycles) toman un costo computacional para descubrirse, el garbage collection debe ser una actividad programada. _Python_ programa el garbage collection basado en la cantidad límite(threshold) de objetos asignados(object allocations) y objetos liberados(object deallocations). Cuando el número de alloctions menos el número de dealloactions es mayor que el threshold, el garbage collector se ejecutará. Uno puede inspeccionar el threshold para nuevos objetos importando en módulo  ``recolección de basura`` y preguntando por el garbage collection thresholds:
 
 ```Python
 # loading gc
@@ -200,7 +200,7 @@ Garbage collection thresholds: (700, 10, 10)
 
 Aquí, el ``threshold`` por defecto en el sistema es 700. Esto significa que el número de allocations vs el número de deallocations tiene que ser mayor que 700 para que el garbage collector automático se ejecute. Por esto qualquier porción de tu código que libere gran cantidad de bloques de memoria es un buen candidato por correr el ``garbage collection`` manual.
 
-#### Garbage Collection Manual:
+### Garbage Collection Manual:
 
 La invocación de forma manual del garbage collector durante la ejecución de un programa puede ser una buena idea en como el manejo de memoria puede ser comsumido por ciclos de referencia.
 
@@ -278,28 +278,50 @@ Hay 2 formas de realizar el garbage collection de forma manual : basado en el ti
 1. **Time-based**: Es simple el garbage collector es llamado luego de un intervalo de tiempo prefijado.
 2. **Even-based**: Se llama al garbage collector dada la ocurrencia de un evento. Por ejemplo, cuando un usuario cierra la aplicación o cuando la aplicación entra en un estado ``idle``.
 
+## _C#_
 
-## C# 
+La gestión automática de la memoria es posible gracias a Garbage Collection en .NET Framework. Cuando se crea un objeto de clase en tiempo de ejecución, se le asigna cierto espacio de memoria en la memoria del **heap**. Sin embargo, después de que todas las acciones relacionadas con el objeto se hayan completado en el programa, el espacio de memoria asignado es un desperdicio, ya que no se puede utilizar. En este caso, la **recolección de basura** es muy útil ya que libera automáticamente el espacio de memoria cuando ya no es necesario.
+La **recolección de basura** siempre funcionará en Managed **Heap** e internamente tiene un motor que se conoce como el motor de optimización.
 
-La gestión automática de la memoria es posible gracias a Garbage Collection en .NET Framework. Cuando se crea un objeto de clase en tiempo de ejecución, se le asigna cierto espacio de memoria en la memoria del heap. Sin embargo, después de que todas las acciones relacionadas con el objeto se hayan completado en el programa, el espacio de memoria asignado es un desperdicio, ya que no se puede utilizar. En este caso, la recolección de basura es muy útil ya que libera automáticamente el espacio de memoria cuando ya no es necesario.
-La recolección de basura siempre funcionará en Managed Heap e internamente tiene un motor que se conoce como el motor de optimización.
+La **recolección de basura** se produce si se cumple al menos una de varias condiciones. Estas condiciones se dan de la siguiente manera:
 
-La recolección de basura se produce si se cumple al menos una de varias condiciones. Estas condiciones se dan de la siguiente manera:
-
-  - Si el sistema tiene poca memoria fisica, entonces las recoleccion de basura es necesaria.
-  - Si la memoria asignada a varios objetos en la memoria del heap excede un el espacio preestablecido, entonces ocurre la recolección de basura.
-  - Si se llama al método ```GC.Collect```, se produce la recolección de basura. Sin embargo, este método solo se llama en situaciones inusuales, ya que normalmente el recolector de basura se ejecuta automáticamente. 
+* Si el sistema tiene poca memoria fisica, entonces las recoleccion de basura es necesaria.
+* Si la memoria asignada a varios objetos en la memoria del **heap** excede un el espacio preestablecido, entonces ocurre la **recolección de basura**.
+* Si se llama al método ```gc.Collect```, se produce la **recolección de basura**. Sin embargo, este método solo se llama en situaciones inusuales, ya que normalmente el recolector de basura se ejecuta automáticamente.
 
 Existen 3 fases principales en la recoleccion de basura:
-  - **Marking Phase(Fase de marcado):** se crea una lista de todos los objetos activos durante la fase de marcado. Esto se hace siguiendo las referencias de todos los objetos raíz. Todos los objetos que no están en la lista de objetos activos se eliminan potencialmente de la memoria del heap.
-  - **Relocating Phase(Fase de reubicación):**: Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se reubicarán los objetos en la fase de compactación. 
-  - **Compacting Phase(Fase de compactación)**: El montón se compacta en la fase de compactación a medida que se libera el espacio ocupado por los objetos muertos y se mueven los objetos vivos restantes. Todos los objetos activos que quedan después de la recolección de elementos no utilizados se mueven hacia el extremo anterior de la memoria del heap en su orden original.
+   **Marking Phase(Fase de marcado):** se crea una lista de todos los objetos activos durante la fase de marcado. Esto se hace siguiendo las referencias de todos los objetos raíz. Todos los objetos que no están en la lista de objetos activos se eliminan potencialmente de la memoria del **heap**.
+   **Relocating Phase(Fase de reubicación):**: Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se reubicarán los objetos en la fase de compactación. 
+   **Compacting Phase(Fase de compactación)**: El **heap** se compacta en la fase de compactación a medida que se libera el espacio ocupado por los objetos muertos y se mueven los objetos vivos restantes. Todos los objetos activos que quedan después de la recolección de elementos no utilizados se mueven hacia el extremo anterior de la memoria del **heap** en su orden original.
 
-La memoria del heap está organizada en 3 generaciones para que varios objetos con diferentes tiempos de vida puedan manejarse apropiadamente durante la recolección de basura. Common Language Runtime (CLR) proporcionará la memoria a cada generación en función del tamaño del proyecto. Internamente, Optimization Engine llamará al método de medios de recolección para seleccionar qué objetos entrarán en la generación 1 o la generación 2. 
+La memoria del **heap** está organizada en 3 generaciones para que varios objetos con diferentes tiempos de vida puedan manejarse apropiadamente durante la **recolección de basura**. Common Language Runtime (CLR) proporcionará la memoria a cada generación en función del tamaño del proyecto. Internamente, Optimization Engine llamará al método de medios de recolección para seleccionar qué objetos entrarán en la generación 1 o la generación 2.
 
-  - **Generación 0:** todos los objetos de corta duración, como las variables temporales, están contenidos en la generación 0 de la memoria del montón. Todos los objetos recién asignados también son objetos de generación 0 implícitamente a menos que sean objetos grandes. En general, la frecuencia de recolección de basura es la más alta en la generación 0. 
-  - **Generación 1:** si el espacio ocupado por algunos objetos de generación 0 que no se liberan en una ejecución de recolección de basura, estos objetos se mueven a la generación 1. Los objetos de esta generación son una especie de búfer entre los objetos de corta duración en la generación 0 y los objetos longevos de la generación 2. 
-  - **Generacion 2:** si el espacio ocupado por algunos objetos de la generación 1 que no se liberan en la siguiente ejecución de recolección de basura, estos objetos se mueven a la generación 2. Los objetos de la generación 2 tienen una vida larga, como los objetos estáticos, ya que permanecen en la memoria del montón. durante todo el proceso.
+- **Generación 0:** todos los objetos de corta duración, como las variables temporales, están contenidos en la generación 0 de la memoria del **heap**. Todos los objetos recién asignados también son objetos de generación 0 implícitamente a menos que sean objetos grandes. En general, la frecuencia de **recolección de basura** es la más alta en la generación 0. 
+- **Generación 1:** si el espacio ocupado por algunos objetos de generación 0 que no se liberan en una ejecución de **recolección de basura**, estos objetos se mueven a la generación 1. Los objetos de esta generación son una especie de búfer entre los objetos de corta duración en la generación 0 y los objetos longevos de la generación 2. 
+- **Generacion 2:** si el espacio ocupado por algunos objetos de la generación 1 que no se liberan en la siguiente ejecución de **recolección de basura**, estos objetos se mueven a la generación 2. Los objetos de la generación 2 tienen una vida larga, como los objetos estáticos, ya que permanecen en la memoria del **heap**. durante todo el proceso.
 
-La recolección de basura de una generación implica la recolección de basura de todas sus generaciones más jóvenes. Esto significa que se liberan todos los objetos de esa generación en particular y sus generaciones más jóvenes. Por este motivo, la recolección de elementos no utilizados de la generación 2 se denomina recolección de elementos no utilizados completa, ya que se liberan todos los objetos de la memoria dinámica. Además, la memoria asignada a la Generación 2 será mayor que la memoria de la Generación 1 y, de manera similar, la memoria de la Generación 1 será mayor que la memoria de la Generación 0 (Generación 2> Generación 1> Generación 0).
+La **recolección de basura** de una generación implica la **recolección de basura** de todas sus generaciones más jóvenes. Esto significa que se liberan todos los objetos de esa generación en particular y sus generaciones más jóvenes. Por este motivo, la recolección de elementos no utilizados de la generación 2 se denomina recolección de elementos no utilizados completa, ya que se liberan todos los objetos de la memoria dinámica. Además, la memoria asignada a la Generación 2 será mayor que la memoria de la Generación 1 y, de manera similar, la memoria de la Generación 1 será mayor que la memoria de la Generación 0 (Generación 2> Generación 1> Generación 0).
 
+## _Java_
+
+Las aplicaciones _Java_ obtienen objetos en la memoria según sea necesario. La tarea de la **recolección de basura** (**Garbage Collection**) en la máquina virtual de _Java_ (JVM) es determinar automáticamente qué memoria ya no está siendo utilizada por una aplicación _Java_ y reciclar esta memoria para otros usos. Debido a que la memoria se recupera automáticamente en la JVM, los desarrolladores de aplicaciones _Java_ no tienen que tener que liberar explícitamente los objetos de memoria que no se utilizan.
+
+La operación de **recolección de basura** se basa en la premisa de que la mayoría de los objetos utilizados en el código _Java_ son de corta duración y pueden recuperarse poco después de su creación. Debido a que los objetos sin referencia se eliminan automáticamente de la memoria del **heap**, la **recolección de basura** hace que _Java_ sea eficiente en la memoria.
+
+Hay dos tipos de **recolección de basura** que generalmente ocurren en _Java_:
+
+* Se dice que se ha producido una **recolección de basura** menor o incremental cuando se eliminan los objetos inalcanzables en la memoria del **heap** de generación joven.
+* Se dice que se ha producido una **recolección de basura** mayor o completa cuando se eliminan los objetos que sobrevivieron a la **recolección de basura** menor y se copiaron en la memoria del **heap** de generación anterior o permanente. En comparación con la generación joven, la **recolección de basura** ocurre con menos frecuencia en la generación anterior.
+
+Para liberar memoria, la JVM debe detener la ejecución de la aplicación durante al menos un breve período de tiempo y ejecutar **recolección de basura**. Este proceso se llama "stop-the-world". Esto significa que todos los subprocesos, excepto los subprocesos de , dejarán de ejecutarse hasta que se ejecuten los subprocesos de **recolección de basura** y el recolector de basura libere los objetos.
+
+Las implementaciones modernas de **recolección de basura** intentan minimizar el bloqueo de las paradas de "detener el mundo" haciendo todo el trabajo posible en segundo plano (es decir, utilizando un hilo separado), por ejemplo, marcando instancias de basura inaccesibles mientras el proceso de la aplicación continúa ejecutándose.
+
+Las JVM modernas como **Azul Zing** utilizan el colector de compactación continuamente concurrente (C4), que elimina las pausas de recolección que limitan la escalabilidad en el caso de las JVM convencionales.
+
+La JVM tradicional de Oracle HotSpot tiene cuatro formas de realizar la actividad de **recolección de basura**:
+
+* Serie donde solo un hilo ejecutó el GC
+* Paralelo donde se ejecutan varios subprocesos menores simultáneamente, cada uno de los cuales ejecuta una parte de la **recolección de basura**.
+* Concurrent Mark Sweep (CMS), que es similar al paralelo, también permite la ejecución de algunos subprocesos de aplicación y reduce la frecuencia del "stop-the-world".
+* G1, que también se ejecuta en paralelo y al mismo tiempo, pero funciona de manera diferente a CMS.
