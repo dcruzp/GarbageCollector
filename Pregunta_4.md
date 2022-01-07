@@ -108,16 +108,51 @@ Veamos como el código anterior es ejecutado y como la memoria en el Stack y el 
 **13.**
 <img src="./Images/rust14.png" style="zoom: 77%;" />
 
+Como se pudo observar en las imágenes anteriores el Stack es manejado de manera automática y se hace por el sistema operativo en vez de por el mismo Rust. Por lo que no nos debemos preocupar mucho sobre el Stack. El Heap, por otro lado, no se maneja de forma automática por el sistema operativo y comom es el mayor espacio en memoria y guarda los datos dinámicos, este puede crecer exponencialmente causando que nuestro programa al ejecutarse se quede sin memoria disponible. También se fragmenta con el tiempo, lo que ralentiza las aplicaciones. Aquí es donde los pasos del modelo de ownership de Rust para manejar de forma automática la memoria en el ``Heap``.
+
+### Ownership:
+
+Rus tiene una de las maneras más singulares para el manejo de memoria en el Heap y esto es lo que hace a Rust tan especial. Usa un concepto llamado ``ownership`` para manejar memoria.
+
+El ``ownership`` está definido por un conjunto de reglas:
+* Cada valor en _Rust_ debe tener una variable como su  **owner**
+* Solo puede haber un **owner** para una variable a la vez
+* Cuando el **owner** se sale del scope el valor será soltado liberando asi la memoria.
+
+
+Ejemplo:
+```Rust
+fn main() {
+    let foo = "value"; // owner is foo and is valid within this method
+    // bar is not valid here as its not declared yet
+
+    {
+        let bar = "bar value"; // owner is bar and is valid within this block scope
+        println!("value of bar is {}", bar); // bar is valid here
+        println!("value of foo is {}", foo); // foo is valid here
+    }
+
+    println!("value of foo is {}", foo); // foo is valid here
+    println!("value of bar is {}", bar); // bar is not valid here as its out of scope
+}
+```
+
+Entonces, al determinar el alcance de las variables con cuidado, podemos asegurarnos de que el uso de la memoria esté optimizado y esta también es la razón por la que Rust te permite usar el alcance de bloque(block scope) en casi todas partes. Esto puede parecer simple, pero en la práctica, este concepto tiene profundas implicaciones en la forma en que se escriben los programas de Rust. Debido a las estrictas reglas del ownership, Rust permite cambiar el ``ownership`` de una variable a otra y es llamado un ``move``. Esto se hace automáticamente al pasar una varibale a una función o al crear una nueva asignación.
 
 
 
+
+
+
+
+
+
+Estas reglas son verificadas por el compilador en tiempo de compilación y la liberacióon de memoria ocurre en tiempo de ejecución junto con la ejecución del programa y, por tanto, no hay tiempo adicional de sobrecarga o pausa aquí. 
 Una de las características centrales de _Rust_ es el **ownership**. Todos los programas tienen que manejar la manera en la que ellos usan la memoria de la computadora mientras están corriendo. Algunos lenguajes tienen un garbage collector que constantemente busca memoria que ya no se esté usando mientras el programa está corriendo; en otros lenguajes el programador debe de forma explícita alocar y liberar la memoria. _Rust_a usa un tercer enfoque: la memoria es manejadad a través de un sistema de ownership con un conjunto de reglas que el compilador verifica en tiempo de compilación.
 
 **Reglas del Ownership:**
 
-* Cada value en _Rust_ tiene una variable que es llamada **owner**
-* Solo puede haber un **owner** a la vez
-* Cuando el **owner** se sale del scope el value será soltado.
+
 
 ## **Stack**, **Heap** y _Rust_
 
