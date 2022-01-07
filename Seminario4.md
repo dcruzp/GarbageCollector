@@ -1,15 +1,17 @@
-# Seminario 16. Recolección automática de basura #
+# Seminario 16. Recolección automática de basura 
 
-# Integrantes:
+## Integrantes:
 
 **David Orlando De Quesada Oliva C311**
 
 **Javier Domínguez C312**
 
 **Daniel de la Cruz C311**
-#
 
-## 1. ¿En qué consiste la recolección automática de basura? Contraste contra el manejo manual en C++.  ##
+
+
+
+# ¿En qué consiste la recolección automática de basura? Contraste contra el manejo manual en C++.  ##
 
 
 
@@ -99,11 +101,11 @@ Como es lógico el **Garbage Collector** es un programa por lo que consume poder
 La mayoría de los **Garbage Colector** en la actualidad poseen todas estas propiedades.
 
 
-#
-## 2. Describa las diferentes estrategias de recolección automática. ¿Cuáles son las ventajas y desventajas de cada una? ##
+
+# 2. Describa las diferentes estrategias de recolección automática. ¿Cuáles son las ventajas y desventajas de cada una? 
 
 
-## **Mark-and-sweep (Marcado y barrido)**
+### Mark-and-sweep (Marcado y barrido)
 
 Este algoritmo reduce la definición de "un objeto ya no es necesitado" a "un objeto es inalcanzable"
 
@@ -197,9 +199,9 @@ En términos de latencia, los recolectores de basura simple de "stop-the-world" 
 
 Algunos avances en la recolección de basura pueden entenderse como reacciones a problemas de rendimiento. Los primeros coleccionistas eran coleccionistas de "stop-the-world", pero el rendimiento de este enfoque distraia la atención de las aplicaciones interactivas. La recolección incremental evito esta interrupcion, pero a costa de una menor eficiencia debido a la necesidad de barreras. Las técnicas de recolección generacional se utilizan con recolectores incrementales y "stop-the-world" para aumentar el rendimiento, la compensación es que parte de la basura no se detecta como tal durante más tiempo de lo normal.
 
-#
 
-## 3. Enumere brevemente las propuestas más comunes en los lenguajes de programación C#,Python, Java, Go y JavaScript.
+
+# 3. Enumere brevemente las propuestas más comunes en los lenguajes de programación C#,Python, Java, Go y JavaScript.
 
 ## _Go_
 
@@ -527,7 +529,7 @@ La JVM tradicional de Oracle HotSpot tiene cuatro formas de realizar la activida
 * Concurrent Mark Sweep (CMS), que es similar al paralelo, también permite la ejecución de algunos subprocesos de aplicación y reduce la frecuencia del "stop-the-world".
 * G1, que también se ejecuta en paralelo y al mismo tiempo, pero funciona de manera diferente a CMS.
 
-## 4. (Opcional) Explique el manejo de memoria en Rust.
+# 4. (Opcional) Explique el manejo de memoria en Rust.
 
 Cada proceso de un programa en Rust reserva cierta cantidad de memoria virtual por el sistema operativo, esta la la memoria total a la cual un proceso puede tener acceso.
 
