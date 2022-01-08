@@ -253,9 +253,12 @@ La **recolección de basura** se produce si se cumple al menos una de varias con
 * Si se llama al método ```gc.Collect```, se produce la **recolección de basura**. Sin embargo, este método solo se llama en situaciones inusuales, ya que normalmente el recolector de basura se ejecuta automáticamente.
 
 Existen 3 fases principales en la recolección de basura:
+
    **Marking Phase(Fase de marcado):** se crea una lista de todos los objetos activos durante la fase de marcado. Esto se hace siguiendo las referencias de todos los objetos raíz. Todos los objetos que no están en la lista de objetos activos se eliminan potencialmente de la memoria del **heap**.
-   **Relocating Phase(Fase de reubicación):**: Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se rebuscarán los objetos en la fase de compactación. 
-   **Compacting Phase(Fase de compactación)**: El **heap** se compacta en la fase de compactación a medida que se libera el espacio ocupado por los objetos muertos y se mueven los objetos vivos restantes. Todos los objetos activos que quedan después de la recolección de elementos no utilizados se mueven hacia el extremo anterior de la memoria del **heap** en su orden original.
+
+   **Relocating Phase(Fase de reubicación):** Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se reubicarán los objetos en la fase de compactación. 
+
+   **Compacting Phase(Fase de compactación):** El **heap** se compacta en la fase de compactación a medida que se libera el espacio ocupado por los objetos muertos y se mueven los objetos vivos restantes. Todos los objetos activos que quedan después de la recolección de elementos no utilizados se mueven hacia el extremo anterior de la memoria del **heap** en su orden original.
 
 La memoria del **heap** está organizada en 3 generaciones para que varios objetos con diferentes tiempos de vida puedan manejarse apropiadamente durante la **recolección de basura**. Common Language Runtime (CLR) proporcionará la memoria a cada generación en función del tamaño del proyecto. Internamente, Optimización Engine llamará al método de medios de recolección para seleccionar qué objetos entrarán en la generación 1 o la generación 2.
 
