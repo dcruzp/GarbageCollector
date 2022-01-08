@@ -105,15 +105,80 @@ La mayoría de los **Garbage Colector** en la actualidad poseen todas estas prop
 # 2. Describa las diferentes estrategias de recolección automática. ¿Cuáles son las ventajas y desventajas de cada una? 
 
 
-### Mark-and-sweep (Marcado y barrido)
+### **Reference Counting (Conteo de referencias)**
 
-Este algoritmo reduce la definición de "un objeto ya no es necesitado" a "un objeto es inalcanzable"
+__Reference counting__ lo que hace es contar el número de veces que un objeto es referenciado por otro objeto en el sistema. Cuando la referencias a un objeto son removidas, el __reference count__ de ese objeto es decrementado. Cuando el reference count llega a 0, el objeto es liberado(deallocated).
 
-Este algoritmo asume la noción de un grupo de objetos llamados objetos raíz (en _JavaScript_ la raíz es el objeto global). Periódicamente el recolector empieza por estas raíces, encuentra todos los objetos que están referenciados por estas raíces, y luego todos los objetos referenciados de estos, etc. Empezando por las raíces, el recolector de esta forma encontrará todos los objetos que son alcanzables y recolectará los objetos inalcanzables.
 
-Este algoritmo es mejor que el anterior ya que "un objeto tiene cero referencias" equivale al "objeto es inalcanzable". Esto no sucedía asi en el algoritmo anterior cuando se trataba de un ciclo.
 
-Desde el 2012, todos los navegadores incluyen un recolector de basura basado en mark-and-sweep. Todas las mejoras realizadas en el campo de Recolección de basura en _JavaScript_ (recolección generacional/incremental/concurrida/paralela) en los ultimos años son mejoras a la implementación del algoritmo, pero no mejoras sobre el algoritmo de recolección ni a la reducción de la definicion de cuando "un objeto ya no es necesario".
+#### Ventajas y desventajas 
+
+La principal ventaja del recuento de referencias sobre el seguimiento de la recolección de basura es que los objetos se reclaman tan pronto como ya no se pueden hacer referencia a ellos, y de manera incremental, sin pausas largas para los ciclos de recolección y con una vida útil claramente definida de cada objeto. En aplicaciones o sistemas en tiempo real con memoria limitada, esto es importante para mantener la capacidad de respuesta. El recuento de referencias también se encuentra entre las formas más sencillas de implementar la gestión de la memoria. También permite una gestión eficaz de los recursos que no son de memoria, como los objetos del sistema operativo, que a menudo son mucho más escasos que la memoria (los sistemas de recolección de basura de rastreo usan finalizadores para esto, pero la recuperación retrasada puede causar problemas). Los recuentos de referencia ponderados son una buena solución para la recolección de basura en un sistema distribuido.
+
+Los recuentos de referencias también son información útil para usar como entrada para otras optimizaciones de tiempo de ejecución. Por ejemplo, los sistemas que dependen en gran medida de objetos inmutables, como muchos lenguajes de programación funcional, pueden sufrir una penalización de eficiencia debido a las copias frecuentes. Sin embargo, si el compilador (o el sistema de tiempo de ejecución) sabe que un objeto en particular tiene solo una referencia (como hace la mayoría en muchos sistemas), y que la referencia se pierde al mismo tiempo que se crea un nuevo objeto similar (como en la sentencia de adición de cadena ```str ← str + "a"```), puede reemplazar la operación con una mutación en el objeto original.
+
+El recuento de referencia tiene dos desventajas  fundamentales sobre la recoleccion de basura restreo, las cuales requieren mecanismos adicionales para mejorarlas. 
+
+  - Las frecuentes actualizaciones que implica son una fuente de ineficiencia. Si bien el seguimiento de los recolectores de basura puede afectar gravemente la eficiencia a través del cambio de contexto y las fallas de la línea de caché, se recolectan con relativa poca frecuencia, mientras que el acceso a los objetos se realiza de forma continua. Además, lo que es menos importante, el recuento de referencias requiere que cada objeto gestionado por memoria reserve espacio para un recuento de referencias. Al rastrear recolectores de basura, esta información se almacena implícitamente en las referencias que hacen referencia a ese objeto, ahorrando espacio, aunque rastrear recolectores de basura, particularmente los incrementales, puede requerir espacio adicional para otros propósitos.
+ 
+  - El algoritmo ingenuo descrito anteriormente no puede manejar ciclos de referencia, un objeto que se refiere directa o indirectamente a sí mismo. Un mecanismo que se base exclusivamente en recuentos de referencias nunca considerará cadenas cíclicas de objetos para su eliminación, ya que se garantiza que su recuento de referencias no será cero. Existen métodos para abordar este problema, pero también pueden aumentar la sobrecarga y la complejidad del recuento de referencias; por otro lado, estos métodos solo deben aplicarse a datos que pueden formar ciclos, a menudo un pequeño subconjunto de todos los datos. Uno de esos métodos es el uso de referencias débiles, mientras que otro implica el uso de un algoritmo de barrido de marcas que se llama con poca frecuencia para limpiar.
+
+El recuento de referencias por sí solo no puede mover objetos para mejorar el rendimiento de la caché, por lo que los recolectores de alto rendimiento también implementan un recolector de basura de seguimiento. La mayoría de las implementaciones (como las de PHP y Objective-C) tienen un rendimiento de caché deficiente, ya que no implementan la copia de objetos.
+
+#### Ejemplos de uso 
+
+ - **C++** no realiza el recuento de referencias de forma predeterminada, cumpliendo con su filosofía de no agregar funcionalidad que pueda incurrir en gastos generales donde el usuario no lo ha solicitado explícitamente. Se puede acceder a los objetos que se comparten pero que no son de propiedad a través de una referencia, un puntero sin formato o un iterador (una generalización conceptual de punteros). 
+ 
+ - **Delphi** En su mayoría, Delphi no es un lenguaje de recolección de basura, en el sentido de que los tipos definidos por el usuario aún deben asignarse y desasignarse manualmente, sin embargo, proporciona una recopilación automática mediante el recuento de referencias para algunos tipos integrados, como cadenas, matrices dinámicas e interfaces, para facilitar su uso y simplificar la funcionalidad de la base de datos genérica. Depende del programador decidir si utilizar los tipos integrados; Los programadores de Delphi tienen acceso completo a la gestión de memoria de bajo nivel como en C / C ++. Por lo tanto, todo el costo potencial del recuento de referencias de Delphi puede, si se desea, eludir fácilmente.
+ - **Perl** también usa el conteo de referencias, sin ningún manejo especial de referencias circulares, aunque (como en Cocoa y C ++), Perl admite referencias débiles, lo que permite a los programadores evitar la creación de un ciclo.
+
+ - **Python** también utiliza el recuento de referencias y también ofrece detección de ciclos (y puede recuperarlos) 
+
+
+## Mark-and-sweep (Marcado y barrido)
+
+Este algoritmo reduce la definición de "un objeto ya no es necesitado" a "un objeto es inalcanzable". Primeramente debe poder detectar todos los objetos inalcanzables y, en segundo lugar, debe recuperar el espacio del heap usado por los objetos basura y hacer que dicho espacio vuelva a estar disponible para el programa. El algoritmo de `Mark and Sweep` realiza estas operaciones en las siguientes dos fases:
+
+* Marcado(`Mark phase`)
+* Barrido(`Sweep phase`)
+
+**Fase 1:Marcado**(`Mark phase`)
+
+Cuando un objeto es creado, su `mark bit` se establece como `0`(false). En la fase de Marcado,  seteamos el `mark bit` de todos los objetos alcanzables a `1`(true). Para hacer esto operación simplemente necesitamos hacer un recorrido en un grafo, un DFS funcionaría en este caso. Si consideramos cada objeto como un nodo y luego se visitan todos los nodos(objetos) que son accesibles desde este node(objeto) y así se continúa hasta que hayamos visitida todos los nodos accesibles.
+
+* La raíz es una variable que se refiere a un objeto y es directamente accesible por una variable local. Supondremos que tenemos una sola raíz.
+* Podemos acceder al mark bit de un objeto mediante `markedBit(obj)`
+  
+
+**Pseudocódigo Mark Phase:**
+```
+Mark(root)
+If markedBit(root) = false then
+                     markedBit(root) = true
+                                       For each v referenced by root
+                                       Mark(v)
+```
+
+**Si tenemos más de una raíz, simplemente tenemos que llamar a Mark() para todas las varibles raíz (root variables).**
+
+**Fase 2: Barrido(Sweep Phase)**
+
+Como el nombre sugiere, "barre" los objetos inalcanzables, es decir, limpia la memoria en el heap para todos los objetos inalcanzables. Todos aquellos objetos cuyo valor marcado se establece en `false` son borrados de la memoria del heap, para todos los demás objetos(objetos alcanzables) el bit marcado se establece en `false`. Ahora el `mark value` para todos los objetos alcanzables se establece en `false`, ya que ejecutaremos el algoritmo(si es necesario) y nuevamente pasaremos por la fase de marcado para marcar todos los objetos alcanzables.
+
+**Pseudocódigo Sweep Phase:**
+```
+Sweep()
+For each object p in heap
+If markedBit(p) = true then
+                  markedBit(p) = false
+                                 else
+                                     heap.release(p)
+```
+
+El `algoritmo de mark-and-sweep` se denomina `tracing garbage collector` porque rastrea la colección completa de objetos a los que el programa puede acceder directa o indirectamente.
+
+
+
 
 La siguiente visualización muestra el proceso:
 
@@ -135,55 +200,26 @@ La siguiente visualización muestra el proceso:
 ``6.``
 <img src="./Images/javascript6.png" style="zoom: 67%;" />
 
-### **Reference Counting (Conteo de referencias)**
-
-__Reference counting__ lo que hace es contar el número de veces que un objeto es referenciado por otro objeto en el sistema. Cuando la referencias a un objeto son removidas, el __reference count__ de ese objeto es decrementado. Cuando el reference count llega a 0, el objeto es liberado(deallocated).
-
-Por ejemplo, supongamos que tenemos 2 o más variables que tienen el mismo valor, entonces, lo que la máquina virtual de _Python_ hace es, en vez de crear otro objeto del mismo valor en el **heap** privado, en realidad hace que la segunda variable apunte al valor que originalmente existía en el **heap** privado. Por lo tanto, en el caso de clases, tener un número de referencias puede ocupar una gran cantidad de espacio en memoria, en dicho caso referencing counting es altamente beneficioso para preservar la memoria disponible para otros objetos.
-
-#### Ventajas y desventajas 
-
-La principal ventaja del recuento de referencias sobre el seguimiento de la recolección de basura es que los objetos se reclaman tan pronto como ya no se pueden hacer referencia a ellos, y de manera incremental, sin pausas largas para los ciclos de recolección y con una vida útil claramente definida de cada objeto. En aplicaciones o sistemas en tiempo real con memoria limitada, esto es importante para mantener la capacidad de respuesta. El recuento de referencias también se encuentra entre las formas más sencillas de implementar la gestión de la memoria. También permite una gestión eficaz de los recursos que no son de memoria, como los objetos del sistema operativo, que a menudo son mucho más escasos que la memoria (los sistemas de recolección de basura de rastreo usan finalizadores para esto, pero la recuperación retrasada puede causar problemas). Los recuentos de referencia ponderados son una buena solución para la recolección de basura en un sistema distribuido.
-
-Los recuentos de referencias también son información útil para usar como entrada para otras optimizaciones de tiempo de ejecución. Por ejemplo, los sistemas que dependen en gran medida de objetos inmutables, como muchos lenguajes de programación funcional, pueden sufrir una penalización de eficiencia debido a las copias frecuentes. [Cita requerida] Sin embargo, si el compilador (o el sistema de tiempo de ejecución) sabe que un objeto en particular tiene solo una referencia ( como hace la mayoría en muchos sistemas), y que la referencia se pierde al mismo tiempo que se crea un nuevo objeto similar (como en la sentencia de adición de cadena ```str ← str + "a"```), puede reemplazar la operación con una mutación en el objeto original.
-
-El recuento de referencia tiene dos desventajas  fundamentales sobre la recoleccion de basura restreo, las cuales requieren mecanismos adicionales para mejorarlas. 
-
-  - Las frecuentes actualizaciones que implica son una fuente de ineficiencia. Si bien el seguimiento de los recolectores de basura puede afectar gravemente la eficiencia a través del cambio de contexto y las fallas de la línea de caché, se recolectan con relativa poca frecuencia, mientras que el acceso a los objetos se realiza de forma continua. Además, lo que es menos importante, el recuento de referencias requiere que cada objeto gestionado por memoria reserve espacio para un recuento de referencias. Al rastrear recolectores de basura, esta información se almacena implícitamente en las referencias que hacen referencia a ese objeto, ahorrando espacio, aunque rastrear recolectores de basura, particularmente los incrementales, puede requerir espacio adicional para otros propósitos.
- 
-  - El algoritmo ingenuo descrito anteriormente no puede manejar ciclos de referencia, un objeto que se refiere directa o indirectamente a sí mismo. Un mecanismo que se base exclusivamente en recuentos de referencias nunca considerará cadenas cíclicas de objetos para su eliminación, ya que se garantiza que su recuento de referencias no será cero. Existen métodos para abordar este problema, pero también pueden aumentar la sobrecarga y la complejidad del recuento de referencias; por otro lado, estos métodos solo deben aplicarse a datos que pueden formar ciclos, a menudo un pequeño subconjunto de todos los datos. Uno de esos métodos es el uso de referencias débiles, mientras que otro implica el uso de un algoritmo de barrido de marcas que se llama con poca frecuencia para limpiar.
-
-El recuento de referencias por sí solo no puede mover objetos para mejorar el rendimiento de la caché, por lo que los recolectores de alto rendimiento también implementan un recolector de basura de seguimiento. La mayoría de las implementaciones (como las de PHP y Objective-C) tienen un rendimiento de caché deficiente, ya que no implementan la copia de objetos.
-
-#### Ejemplos de uso 
-
- - **C++** no realiza el recuento de referencias de forma predeterminada, cumpliendo con su filosofía de no agregar funcionalidad que pueda incurrir en gastos generales donde el usuario no lo ha solicitado explícitamente. Se puede acceder a los objetos que se comparten pero que no son de propiedad a través de una referencia, un puntero sin formato o un iterador (una generalización conceptual de punteros). 
- 
- - **Delphi** En su mayoría, Delphi no es un lenguaje de recolección de basura, en el sentido de que los tipos definidos por el usuario aún deben asignarse y desasignarse manualmente, sin embargo, proporciona una recopilación automática mediante el recuento de referencias para algunos tipos integrados, como cadenas, matrices dinámicas e interfaces, para facilitar su uso y simplificar la funcionalidad de la base de datos genérica. Depende del programador decidir si utilizar los tipos integrados; Los programadores de Delphi tienen acceso completo a la gestión de memoria de bajo nivel como en C / C ++. Por lo tanto, todo el costo potencial del recuento de referencias de Delphi puede, si se desea, eludir fácilmente.
- - **Perl** también usa el conteo de referencias, sin ningún manejo especial de referencias circulares, aunque (como en Cocoa y C ++ arriba), Perl admite referencias débiles, lo que permite a los programadores evitar la creación de un ciclo.
- - **PHP** utiliza un mecanismo de recuento de referencias para su gestión de variables internas. Desde PHP 5.3, implementa el algoritmo del artículo de Bacon mencionado anteriormente. PHP le permite activar y desactivar la colección de ciclos con funciones a nivel de usuario. También le permite forzar manualmente la ejecución del mecanismo de purging.
- - **Python** también utiliza el recuento de referencias y también ofrece detección de ciclos (y puede recuperarlos) 
-
 ## Traicing garbage collection
 
 Traicing garbage collection es una forma de manejo de memoria automática que consiste en determinar que objetos deben ser liberados. Rastreando que objetos son alcanzables por una cadena de referencias de ciertas objetos "root", y considerando el resto como "basura" y recolectando estos. Traicing garbage collection es la forma mas común de recolección de basura, tanto es así que "garbage collection" se refiere a "traicing garbage collection", en lugar de a otros métodos como el conteo de referencias, y hay una gran cantidad de algoritmos utilizados en la implementación.
 
 ## Accecibilidad de un objeto
 
-Informalmente un objeto es accesible si este es referenciado por al menos una variable en el programa, ya sea directamente o mediante referencias de otros objetos accecibles. Más especificamente, se puede acceder a los objetos solo de dos formas:
+Informalmente un objeto es accesible si este es referenciado por al menos una variable en el programa, ya sea directamente o mediante referencias de otros objetos accesibles. Más especificamente, se puede acceder a los objetos solo de dos formas:
 
-- Un distiguido conjunto de roots: objetos que son asumidos son alcanzables. Típicamente, eso include todos los objetos referenciados de cualquier parte en la "Pila de llamadas"(que son todas las variables y parametros locales en la función que se estan invocando actualmente) y culquier variable global.
-- cualquiera referencia de un objeto accecible es accesible, mas formalmente, accesibilidad es transitiva.
+- Un distiguido conjunto de roots: objetos que son asumidos son alcanzables. Típicamente, eso include todos los objetos referenciados de cualquier parte en la "Pila de llamadas"(que son todas las variables y parámetros locales en la función que se estan invocando actualmente) y cualquier variable global.
+- cualquier referencia de un objeto accesible es accesible, más formalmente, la accesibilidad es transitiva.
 
 La definición de accesibilidad de "basura" no es óptima, en la medida en que la última vez que un programa usa un objeto podría ser mucho antes de que ese objeto caiga fuera del alcance del entorno. A veces se hace una distinción entre basura sintáctica (aquellos objetos que el programa posiblemente no pueda alcanzar) y basura semántica (esos objetos que el programa nunca volverá a usar)
 
-El problema de identificar con precisión la basura semántica es parciamente decidible: un programa que asigna un objeto X, ejecuta un programa de entrada arbitrario P termina, requeriria un recolector de basura semántica para resolver resolver el problema de la detección. Aunque los métodos heurísticos conservadores para las detección de basura semántica siguen siendo un area de investigación activa, escencialmente todos los recolectores de basura prácticos se enfocan en la basura sintáctica.
+El problema de identificar con precisión la basura semántica es parciamente decidible: un programa que asigna un objeto `x`, ejecuta un programa de entrada arbitrario `p` termina, requeriria un recolector de basura semántica para resolver resolver el problema de la detección. Aunque los métodos heurísticos conservadores para las detección de basura semántica siguen siendo un área de investigación activa, escencialmente todos los recolectores de basura prácticos se enfocan en la basura sintáctica.
 
-Otra complicación con este enfoque es que, en lenguajes con tipos de referencia y tipos por valor sin caja, el recolector de basura necesita de alguna manera poder distinguir que varaibles en la pila o campos en un objeto son valores regulares y cuales son referencias: en la memoria, un número entero y una referencia pueden parecerse. El recolector de basura necesita saber si tratar el elemento como una referencia y seguirlo, o si es un valor primitivo. Una solución común es el uso de punteros etiquetados.
+Otra complicación con este enfoque es que, en lenguajes con tipos de referencia y tipos por valor sin caja, el recolector de basura necesita de alguna manera poder distinguir que variables en la pila o campos en un objeto son valores regulares y cuales son referencias: en la memoria, un número entero y una referencia pueden parecerse. El recolector de basura necesita saber si tratar el elemento como una referencia y seguirlo, o si es un valor primitivo. Una solución común es el uso de punteros etiquetados.
 
 ## Colecciones débiles (Weak collections)
 
-Se pueden diseñar estructuras de datos que tengan características de seguimiento débiles. Por ejemplo las tablas hash débil son útiles. Al igual que la tablas Hash normal, una tabla hash dðbil mantiene una asociación entre un pares de objetos, donde cada clave se entiende como una clave y un valor. Sin embargo la tabla hash no mantiene una referencia sólida sobre estos objetos. Se produce un comportamiento especial cuando la clave, el valor o ambos, se convierten en basura: la entrada de la tablas hash se elimina espontáneamente. Existen mas refinamientos, como tablas hash que solo tienen claves débiles(las referencias de valor son referencias ordinarias, fuertes) o solo valores débiles(las referencias de claves son fuertes)
+Se pueden diseñar estructuras de datos que tengan características de seguimiento débiles. Por ejemplo las tablas hash débil son útiles. Al igual que la tablas Hash normal, una tabla hash débil mantiene una asociación entre un par de objetos, donde cada clave se entiende como una clave y un valor. Sin embargo la tabla hash no mantiene una referencia sólida sobre estos objetos. Se produce un comportamiento especial cuando la clave, el valor o ambos, se convierten en basura: la entrada de la tablas hash se elimina espontáneamente. Existen más refinamientos, como tablas hash que solo tienen claves débiles(las referencias de valor son referencias ordinarias, fuertes) o solo valores débiles(las referencias de claves son fuertes)
 
 Las tablas hash débiles son importantes para mantener asociaciones entre objetos, de modo que los objetos involucrados en la asociación aún pueden convertirse en basura si ya nada en el programa se refiere a ellos (aparte de la tabla hash asociada).
 
@@ -191,109 +227,44 @@ El uso de una tabla hash regular para tal propósito podría conducir a una "pé
 
 ## Rendimiento (Performance)
 
-El rendimiento de los recolectores de basura de seguimiento, tanto la latencia como el rendimiento, depende significativamente de la implementacion, la carga de trabajo y el entorno. Las impleemntaciones lazy o el uso en entornos con mucha memoria restringida, especialmente los sistemas integrados, pueden resutar en un rendimiento muy deficiente en comparacion con otros métodos, mientras que las implementaciones sofisticadas y el uso en entornos con mucha memoria puede dar como resultado un rendimiento excelente.
+El rendimiento de los recolectores de basura de seguimiento, tanto la latencia como el rendimiento, depende significativamente de la implementación, la carga de trabajo y el entorno. Las implementaciones lazy o el uso en entornos con mucha memoria restringida, especialmente los sistemas integrados, pueden resultar en un rendimiento muy deficiente en comparación con otros métodos, mientras que las implementaciones sofisticadas y el uso en entornos con mucha memoria puede dar como resultado un rendimiento excelente.
 
-En términos de rendimiento el seguimiento, por su naturaleza, requiere una sobrecarga de tiempo de ejecucion implícita, aunque en algunos casos el costo amortizado puede ser extremadamente bajo, en algunos casos incluso menor que una instruccion por asignacion o coleccion, superando la asignacion de pila. La gestion manual de la memoria requiere sobrecarga debido a la liberación explícita de memoria, y el recuento de referencias tiene sobrecarga por incrementar y disminuir los recuentos de referencia y comprobar si el recuento se ha desbordado o ha caido a cero.
+En términos de rendimiento el seguimiento, por su naturaleza, requiere una sobrecarga de tiempo de ejecución implícita, aunque en algunos casos el costo amortizado puede ser extremadamente bajo, en algunos casos incluso menor que una instrucción por asignación o colección, superando la asignación de pila. La gestión manual de la memoria requiere sobrecarga debido a la liberación explícita de memoria, y el recuento de referencias tiene sobrecarga por incrementar y disminuir los recuentos de referencia y comprobar si el recuento se ha desbordado o ha caído a cero.
 
 En términos de latencia, los recolectores de basura simple de "stop-the-world" pausan la ejecución del programa para la recolección de basura, lo que puede suceder en momentos arbitrarios y tomar un tiempo arbitrario, lo que los hace inutilizable para la computación en tiempo real, especialmente los sistemas integrados, y no se ajustan bien a los sistemas interactivos o cualquier situación en la que la baja latencia sea una prioridad. Sin embrago, los recolectores de basura incrementales pueden proporcionar garantías estrictas en tiempo real y en sistemas con tiempo de inactividad frecuente y suficiente memoria libre, como computadoras personales, la recoleccion de basura se puede programar tiempos de inactividad y tener un impacto mínimo en el rendimiento interactivo. La administración de memoria manual (como en _C++_) y el conteo de referencias tienen un problema similar de pausas arbitrariamente largas en caso de desasignar una estructura de datos grande y todos sus elementos secundarios, aunque esto solo ocurre en momentos fijos, no dependiendo de la recolección de basura.
 
-Algunos avances en la recolección de basura pueden entenderse como reacciones a problemas de rendimiento. Los primeros coleccionistas eran coleccionistas de "stop-the-world", pero el rendimiento de este enfoque distraia la atención de las aplicaciones interactivas. La recolección incremental evito esta interrupcion, pero a costa de una menor eficiencia debido a la necesidad de barreras. Las técnicas de recolección generacional se utilizan con recolectores incrementales y "stop-the-world" para aumentar el rendimiento, la compensación es que parte de la basura no se detecta como tal durante más tiempo de lo normal.
+Algunos avances en la recolección de basura pueden entenderse como reacciones a problemas de rendimiento. Los primeros recolectores eran recolectores de "stop-the-world", pero el rendimiento de este enfoque distraía la atención de las aplicaciones interactivas. La recolección incremental evito esta interrupción, pero a costa de una menor eficiencia debido a la necesidad de barreras. Las técnicas de recolección generacional se utilizan con recolectores incrementales y "stop-the-world" para aumentar el rendimiento, la compensación es que parte de la basura no se detecta como tal durante más tiempo de lo normal.
 
 
 
 # 3. Enumere brevemente las propuestas más comunes en los lenguajes de programación C#,Python, Java, Go y JavaScript.
 
-## _Go_
-
-Primero que todo el recolector de basura de _Go_ es un recolector de basura **no generacional**, **concurrente**, **tricolor** de **marca y barrido**.
-
- _Go_ prefiere asignar memoria en el **stack**, por lo que la mayoría de las asignaciones de memoria terminarán allí. Esto significa que _Go_ tiene una **stack** por **goroutine** y, cuando sea posible, _Go_ asignará variables a esta **stack**. El compilador de _Go_ intenta probar que no se necesita una variable fuera de la función realizando un análisis de escape para ver si un objeto "escapa" de la función. Si el compilador puede determinar la duración de una variable, se asignará a una **stack**. Sin embargo, si la vida útil de la variable no está clara, se asignará en el **heap**. Generalmente, si un programa _Go_ tiene un puntero a un objeto, ese objeto se almacena en el **heap**.
-
- La hipótesis generacional asume que los objetos de corta duración, como las variables temporales, se liberan con mayor frecuencia. Por lo tanto, un **Garbage Collector** generacional se centra en los objetos asignados recientemente. Sin embargo, mencionamos previamente, las optimizaciones del compilador permiten que el compilador de _Go_ asigne objetos con una vida útil conocida al **stack**. Esto significa que habrá menos objetos en el **heap**, por lo que se recolectarán menos objetos como basura. Esto significa que un **Garbage Collector** generacional no es necesario en _Go_. Entonces, _Go_ usa un recolector de basura no generacional. Concurrente significa que el **Garbage Collector** se ejecuta al mismo tiempo que los restantes hilos del programa. Por lo tanto, _Go_ utiliza un recolector de basura **concurrente**, **no generacional**, **marca y barrido** (mark and sweep) es el tipo de **Garbage Collector** y **tricolor** es el algoritmo utilizado para implementar esto.
-
-## _JavaScript_
-
-La noción principal de los algoritmos de recolección se basan en la noción de ``referencia``.  Dentro del contexto de gestión de memoria, se dice que un objeto hace referencia a otro si el primero tiene acceso al segundo (ya sea de forma implícita o explícita). Por ejemplo, un objeto de _JavaScript_ guarda una referencia a su prototipo (``referencia implícita``) y a cualquiera de los valores de sus propiedades (``referencia explícita``).
-
-Hay que mencionar que en este contexto la noción de "objeto" se refiere a algo más amplio que los objetos normales de _JavaScript_ y que también incluye al ámbito de la función (o ámbito de léxico global).
-
-## Usando conteo por referencias
-
-Éste es el algoritmo de recolección más simple. Este algoritmo reduce la definición de "un objejo ya no es necesario" a "un objeto ya no tiene ningún otro objeto que lo referencie". Un objeto es considerado recolectable si existen cero referencias hacia él.
-
-Ejemplo 1:
-
-```Javascript
-var o = {
-  a: {
-    b:2
-  }
-};
-// Se crean dos objetos. Uno es referenciado por el otro como
-// una de sus propiedades.
-// El otro es referenciado al ser asignado a la variable "o"
-// Ninguno puede ser recolectado.
 
 
-var o2 = o; // la variable "o2" es lo segundo en tener una
-            // referencia al objeto.
-o = 1;      // ahora el objeto solo tiene una referencia mediante
-            // la variable "o2"
+## _C#_
 
-var oa = o2.a; // referencia a la propiedad "a" del objeto.
-               // ahora el objeto posee dos referencias, una como propiedad
-               // la otra como la variable "oa"
+La gestión automática de la memoria es posible gracias a Garbage Collection en .NET Framework. Cuando se crea un objeto de clase en tiempo de ejecución, se le asigna cierto espacio de memoria en la memoria del **heap**. Sin embargo, después de que todas las acciones relacionadas con el objeto se hayan completado en el programa, el espacio de memoria asignado es un desperdicio, ya que no se puede utilizar. En este caso, la **recolección de basura** es muy útil ya que libera automáticamente el espacio de memoria cuando ya no es necesario.
+La **recolección de basura** siempre funcionará en Managed **Heap** e internamente tiene un motor que se conoce como el motor de optimización.
 
-o2 = "yo"; // el objeto original "o" ahora ya no tiene
-           // referencias a él. Podría ser recolectado.
-           // Sin embargo lo que había en la propiedad "a" aún
-           // esta refernciado en la variable "oa";
-           // no puede ser recolectado aún
+La **recolección de basura** se produce si se cumple al menos una de varias condiciones. Estas condiciones se dan de la siguiente manera:
 
-oa = null; // lo que estaba en la propiedad "a" del objeto original "o"
-           // ahora ya no tiene ninguna referencia.Puede ser recolectado.
-```
+* Si el sistema tiene poca memoria fisica, entonces las recoleccion de basura es necesaria.
+* Si la memoria asignada a varios objetos en la memoria del **heap** excede un el espacio preestablecido, entonces ocurre la **recolección de basura**.
+* Si se llama al método ```gc.Collect```, se produce la **recolección de basura**. Sin embargo, este método solo se llama en situaciones inusuales, ya que normalmente el recolector de basura se ejecuta automáticamente.
 
-Limitación : ciclos
+Existen 3 fases principales en la recoleccion de basura:
+   **Marking Phase(Fase de marcado):** se crea una lista de todos los objetos activos durante la fase de marcado. Esto se hace siguiendo las referencias de todos los objetos raíz. Todos los objetos que no están en la lista de objetos activos se eliminan potencialmente de la memoria del **heap**.
+   **Relocating Phase(Fase de reubicación):**: Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se reubicarán los objetos en la fase de compactación. 
+   **Compacting Phase(Fase de compactación)**: El **heap** se compacta en la fase de compactación a medida que se libera el espacio ocupado por los objetos muertos y se mueven los objetos vivos restantes. Todos los objetos activos que quedan después de la recolección de elementos no utilizados se mueven hacia el extremo anterior de la memoria del **heap** en su orden original.
 
-Existe una limitación cuando se trata de ciclos.
+La memoria del **heap** está organizada en 3 generaciones para que varios objetos con diferentes tiempos de vida puedan manejarse apropiadamente durante la **recolección de basura**. Common Language Runtime (CLR) proporcionará la memoria a cada generación en función del tamaño del proyecto. Internamente, Optimization Engine llamará al método de medios de recolección para seleccionar qué objetos entrarán en la generación 1 o la generación 2.
 
-```Javascript
-function f(){
-  var o = {};
-  var o2 = {};
-  o.a = o2; // o referencía o2
-  o2.a = o; // o2 referencía o
+- **Generación 0:** todos los objetos de corta duración, como las variables temporales, están contenidos en la generación 0 de la memoria del **heap**. Todos los objetos recién asignados también son objetos de generación 0 implícitamente a menos que sean objetos grandes. En general, la frecuencia de **recolección de basura** es la más alta en la generación 0. 
+- **Generación 1:** si el espacio ocupado por algunos objetos de generación 0 que no se liberan en una ejecución de **recolección de basura**, estos objetos se mueven a la generación 1. Los objetos de esta generación son una especie de búfer entre los objetos de corta duración en la generación 0 y los objetos longevos de la generación 2. 
+- **Generacion 2:** si el espacio ocupado por algunos objetos de la generación 1 que no se liberan en la siguiente ejecución de **recolección de basura**, estos objetos se mueven a la generación 2. Los objetos de la generación 2 tienen una vida larga, como los objetos estáticos, ya que permanecen en la memoria del **heap**. durante todo el proceso.
 
-  return "azerty";
-}
+La **recolección de basura** de una generación implica la **recolección de basura** de todas sus generaciones más jóvenes. Esto significa que se liberan todos los objetos de esa generación en particular y sus generaciones más jóvenes. Por este motivo, la recolección de elementos no utilizados de la generación 2 se denomina recolección de elementos no utilizados completa, ya que se liberan todos los objetos de la memoria dinámica. Además, la memoria asignada a la Generación 2 será mayor que la memoria de la Generación 1 y, de manera similar, la memoria de la Generación 1 será mayor que la memoria de la Generación 0 (Generación 2> Generación 1> Generación 0).
 
-f();
-// Dos objetos son creados y se referencían uno al otro creando un ciclo
-// Estan atrapados en el scope de la funcion después de la llamada
-// por lo que son inútiles fuera de la función y podrían ser recolectados.
-// Sin embargo, el algoritmo de conteo de referencias considera que como
-// ambos objetos estan referenciados (aunque sean a si mismos) ambos
-// siguen en uso y por lo tanto no pueden ser recolectados.
-
-```
-
- En el ejemplo anterior dos objetos son creados y se referencían entre ellos, por lo que se crea un ciclo. Ellos no saldrán del ámbito de la función después del llamado de la función, con lo que serían efectivamente "ya no son necesarios" y por lo cual ser liberados. Sin embargo, el algoritmo de conteo de referencias considera que ya que cada uno de los dos objetos está referenciado por lo menos una vez, ninguno podra ser recolectado. Este simple algoritmo tiene la limitación de que si un grupo de objetos se referencian a sí mismos (y forman un ciclo), nunca pasarán a "ya no ser necesitados" y no podrán ser recolectados nunca.
-
-Internet Explorer 6 y 7 son conocidos por tener recolectores de basura por conteo de referencias para los objetos del ``DOM``. Los ciclos son un error común que pueden generar fugas de memoria (memory leaks).
-
-Ejemplo 2:
-
-```Javascript
-var div;
-window.onload = function(){
-  div = document.getElementById("miDiv");
-  div.referenciaCircular = div;
-  div.muchosDatos = new Array(10000).join("*");
-};
-```
-
-En el ejemplo anterior, el elemento del DOM "miDiv" posée una referencia circular a sí mismo en la propiedad "referenciaCircular". Si la propiedad no es explícitamente removida o asignada con el valor null,  un algoritmo de conteo de referencias siempre va a dejar por lo menos una referencia intacta y va a mantener el elemento del DOM activo en memoria incluso cuando es removido del DOM. Si el objeto del DOM contiene una gran cantidad de datos (ejemplificado en la propiedad "muchosDatos"), la memoria consumida por estos datos nunca será liberada.
 
 ## _Python_
 
@@ -302,6 +273,9 @@ El proceso de reservar y liberar memoria en _Python_ es automático. El programa
 * Reference Counting
 * Garbage Collection
 
+**Reference Couting:**
+
+Por ejemplo, supongamos que tenemos 2 o más variables que tienen el mismo valor, entonces, lo que la máquina virtual de _Python_ hace es, en vez de crear otro objeto del mismo valor en el **heap** privado, en realidad hace que la segunda variable apunte al valor que originalmente existía en el **heap** privado. Por lo tanto, en el caso de clases, tener un número de referencias puede ocupar una gran cantidad de espacio en memoria, en dicho caso referencing counting es altamente beneficioso para preservar la memoria disponible para otros objetos.
 ### Ejemplo 1:
 
 ```Python
@@ -481,29 +455,6 @@ Hay 2 formas de realizar el garbage collection de forma manual : basado en el ti
 1. **Time-based**: Es simple el garbage collector es llamado luego de un intervalo de tiempo prefijado.
 2. **Even-based**: Se llama al garbage collector dada la ocurrencia de un evento. Por ejemplo, cuando un usuario cierra la aplicación o cuando la aplicación entra en un estado ``idle``.
 
-## _C#_
-
-La gestión automática de la memoria es posible gracias a Garbage Collection en .NET Framework. Cuando se crea un objeto de clase en tiempo de ejecución, se le asigna cierto espacio de memoria en la memoria del **heap**. Sin embargo, después de que todas las acciones relacionadas con el objeto se hayan completado en el programa, el espacio de memoria asignado es un desperdicio, ya que no se puede utilizar. En este caso, la **recolección de basura** es muy útil ya que libera automáticamente el espacio de memoria cuando ya no es necesario.
-La **recolección de basura** siempre funcionará en Managed **Heap** e internamente tiene un motor que se conoce como el motor de optimización.
-
-La **recolección de basura** se produce si se cumple al menos una de varias condiciones. Estas condiciones se dan de la siguiente manera:
-
-* Si el sistema tiene poca memoria fisica, entonces las recoleccion de basura es necesaria.
-* Si la memoria asignada a varios objetos en la memoria del **heap** excede un el espacio preestablecido, entonces ocurre la **recolección de basura**.
-* Si se llama al método ```gc.Collect```, se produce la **recolección de basura**. Sin embargo, este método solo se llama en situaciones inusuales, ya que normalmente el recolector de basura se ejecuta automáticamente.
-
-Existen 3 fases principales en la recoleccion de basura:
-   **Marking Phase(Fase de marcado):** se crea una lista de todos los objetos activos durante la fase de marcado. Esto se hace siguiendo las referencias de todos los objetos raíz. Todos los objetos que no están en la lista de objetos activos se eliminan potencialmente de la memoria del **heap**.
-   **Relocating Phase(Fase de reubicación):**: Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se reubicarán los objetos en la fase de compactación. 
-   **Compacting Phase(Fase de compactación)**: El **heap** se compacta en la fase de compactación a medida que se libera el espacio ocupado por los objetos muertos y se mueven los objetos vivos restantes. Todos los objetos activos que quedan después de la recolección de elementos no utilizados se mueven hacia el extremo anterior de la memoria del **heap** en su orden original.
-
-La memoria del **heap** está organizada en 3 generaciones para que varios objetos con diferentes tiempos de vida puedan manejarse apropiadamente durante la **recolección de basura**. Common Language Runtime (CLR) proporcionará la memoria a cada generación en función del tamaño del proyecto. Internamente, Optimization Engine llamará al método de medios de recolección para seleccionar qué objetos entrarán en la generación 1 o la generación 2.
-
-- **Generación 0:** todos los objetos de corta duración, como las variables temporales, están contenidos en la generación 0 de la memoria del **heap**. Todos los objetos recién asignados también son objetos de generación 0 implícitamente a menos que sean objetos grandes. En general, la frecuencia de **recolección de basura** es la más alta en la generación 0. 
-- **Generación 1:** si el espacio ocupado por algunos objetos de generación 0 que no se liberan en una ejecución de **recolección de basura**, estos objetos se mueven a la generación 1. Los objetos de esta generación son una especie de búfer entre los objetos de corta duración en la generación 0 y los objetos longevos de la generación 2. 
-- **Generacion 2:** si el espacio ocupado por algunos objetos de la generación 1 que no se liberan en la siguiente ejecución de **recolección de basura**, estos objetos se mueven a la generación 2. Los objetos de la generación 2 tienen una vida larga, como los objetos estáticos, ya que permanecen en la memoria del **heap**. durante todo el proceso.
-
-La **recolección de basura** de una generación implica la **recolección de basura** de todas sus generaciones más jóvenes. Esto significa que se liberan todos los objetos de esa generación en particular y sus generaciones más jóvenes. Por este motivo, la recolección de elementos no utilizados de la generación 2 se denomina recolección de elementos no utilizados completa, ya que se liberan todos los objetos de la memoria dinámica. Además, la memoria asignada a la Generación 2 será mayor que la memoria de la Generación 1 y, de manera similar, la memoria de la Generación 1 será mayor que la memoria de la Generación 0 (Generación 2> Generación 1> Generación 0).
 
 ## _Java_
 
@@ -529,6 +480,106 @@ La JVM tradicional de Oracle HotSpot tiene cuatro formas de realizar la activida
 * Concurrent Mark Sweep (CMS), que es similar al paralelo, también permite la ejecución de algunos subprocesos de aplicación y reduce la frecuencia del "stop-the-world".
 * G1, que también se ejecuta en paralelo y al mismo tiempo, pero funciona de manera diferente a CMS.
 
+## _Go_
+
+Primero que todo el recolector de basura de _Go_ es un recolector de basura **no generacional**, **concurrente**, **tricolor** de **marca y barrido**.
+
+ _Go_ prefiere asignar memoria en el **stack**, por lo que la mayoría de las asignaciones de memoria terminarán allí. Esto significa que _Go_ tiene una **stack** por **goroutine** y, cuando sea posible, _Go_ asignará variables a esta **stack**. El compilador de _Go_ intenta probar que no se necesita una variable fuera de la función realizando un análisis de escape para ver si un objeto "escapa" de la función. Si el compilador puede determinar la duración de una variable, se asignará a una **stack**. Sin embargo, si la vida útil de la variable no está clara, se asignará en el **heap**. Generalmente, si un programa _Go_ tiene un puntero a un objeto, ese objeto se almacena en el **heap**.
+
+ La hipótesis generacional asume que los objetos de corta duración, como las variables temporales, se liberan con mayor frecuencia. Por lo tanto, un **Garbage Collector** generacional se centra en los objetos asignados recientemente. Sin embargo, mencionamos previamente, las optimizaciones del compilador permiten que el compilador de _Go_ asigne objetos con una vida útil conocida al **stack**. Esto significa que habrá menos objetos en el **heap**, por lo que se recolectarán menos objetos como basura. Esto significa que un **Garbage Collector** generacional no es necesario en _Go_. Entonces, _Go_ usa un recolector de basura no generacional. Concurrente significa que el **Garbage Collector** se ejecuta al mismo tiempo que los restantes hilos del programa. Por lo tanto, _Go_ utiliza un recolector de basura **concurrente**, **no generacional**, **marca y barrido** (mark and sweep) es el tipo de **Garbage Collector** y **tricolor** es el algoritmo utilizado para implementar esto.
+
+## _JavaScript_
+
+La noción principal de los algoritmos de recolección se basan en la noción de ``referencia``.  Dentro del contexto de gestión de memoria, se dice que un objeto hace referencia a otro si el primero tiene acceso al segundo (ya sea de forma implícita o explícita). Por ejemplo, un objeto de _JavaScript_ guarda una referencia a su prototipo (``referencia implícita``) y a cualquiera de los valores de sus propiedades (``referencia explícita``).
+
+Hay que mencionar que en este contexto la noción de "objeto" se refiere a algo más amplio que los objetos normales de _JavaScript_ y que también incluye al ámbito de la función (o ámbito de léxico global).
+
+## Usando conteo por referencias
+
+Éste es el algoritmo de recolección más simple. Este algoritmo reduce la definición de "un objejo ya no es necesario" a "un objeto ya no tiene ningún otro objeto que lo referencie". Un objeto es considerado recolectable si existen cero referencias hacia él.
+
+Ejemplo 1:
+
+```Javascript
+var o = {
+  a: {
+    b:2
+  }
+};
+// Se crean dos objetos. Uno es referenciado por el otro como
+// una de sus propiedades.
+// El otro es referenciado al ser asignado a la variable "o"
+// Ninguno puede ser recolectado.
+
+
+var o2 = o; // la variable "o2" es lo segundo en tener una
+            // referencia al objeto.
+o = 1;      // ahora el objeto solo tiene una referencia mediante
+            // la variable "o2"
+
+var oa = o2.a; // referencia a la propiedad "a" del objeto.
+               // ahora el objeto posee dos referencias, una como propiedad
+               // la otra como la variable "oa"
+
+o2 = "yo"; // el objeto original "o" ahora ya no tiene
+           // referencias a él. Podría ser recolectado.
+           // Sin embargo lo que había en la propiedad "a" aún
+           // esta refernciado en la variable "oa";
+           // no puede ser recolectado aún
+
+oa = null; // lo que estaba en la propiedad "a" del objeto original "o"
+           // ahora ya no tiene ninguna referencia.Puede ser recolectado.
+```
+
+Limitación : ciclos
+
+Existe una limitación cuando se trata de ciclos.
+
+```Javascript
+function f(){
+  var o = {};
+  var o2 = {};
+  o.a = o2; // o referencía o2
+  o2.a = o; // o2 referencía o
+
+  return "azerty";
+}
+
+f();
+// Dos objetos son creados y se referencían uno al otro creando un ciclo
+// Estan atrapados en el scope de la funcion después de la llamada
+// por lo que son inútiles fuera de la función y podrían ser recolectados.
+// Sin embargo, el algoritmo de conteo de referencias considera que como
+// ambos objetos estan referenciados (aunque sean a si mismos) ambos
+// siguen en uso y por lo tanto no pueden ser recolectados.
+
+```
+
+ En el ejemplo anterior dos objetos son creados y se referencían entre ellos, por lo que se crea un ciclo. Ellos no saldrán del ámbito de la función después del llamado de la función, con lo que serían efectivamente "ya no son necesarios" y por lo cual ser liberados. Sin embargo, el algoritmo de conteo de referencias considera que ya que cada uno de los dos objetos está referenciado por lo menos una vez, ninguno podra ser recolectado. Este simple algoritmo tiene la limitación de que si un grupo de objetos se referencian a sí mismos (y forman un ciclo), nunca pasarán a "ya no ser necesitados" y no podrán ser recolectados nunca.
+
+Internet Explorer 6 y 7 son conocidos por tener recolectores de basura por conteo de referencias para los objetos del ``DOM``. Los ciclos son un error común que pueden generar fugas de memoria (memory leaks).
+
+Ejemplo 2:
+
+```Javascript
+var div;
+window.onload = function(){
+  div = document.getElementById("miDiv");
+  div.referenciaCircular = div;
+  div.muchosDatos = new Array(10000).join("*");
+};
+```
+
+En el ejemplo anterior, el elemento del DOM "miDiv" posée una referencia circular a sí mismo en la propiedad "referenciaCircular". Si la propiedad no es explícitamente removida o asignada con el valor null,  un algoritmo de conteo de referencias siempre va a dejar por lo menos una referencia intacta y va a mantener el elemento del DOM activo en memoria incluso cuando es removido del DOM. Si el objeto del DOM contiene una gran cantidad de datos (ejemplificado en la propiedad "muchosDatos"), la memoria consumida por estos datos nunca será liberada.
+
+### Mark-and-sweep:
+
+
+Este algoritmo asume la noción de un grupo de objetos llamados objetos raíz (en _JavaScript_ la raíz es el objeto global). Periódicamente el recolector empieza por estas raíces, encuentra todos los objetos que están referenciados por estas raíces, y luego todos los objetos referenciados de estos, etc. Empezando por las raíces, el recolector de esta forma encontrará todos los objetos que son alcanzables y recolectará los objetos inalcanzables.
+
+Este algoritmo es mejor que el anterior ya que "un objeto tiene cero referencias" equivale al "objeto es inalcanzable". Esto no sucedía asi en el algoritmo anterior cuando se trataba de un ciclo.
+
+Desde el 2012, todos los navegadores incluyen un recolector de basura basado en mark-and-sweep. Todas las mejoras realizadas en el campo de Recolección de basura en _JavaScript_ (recolección generacional/incremental/concurrida/paralela) en los ultimos años son mejoras a la implementación del algoritmo, pero no mejoras sobre el algoritmo de recolección ni a la reducción de la definicion de cuando "un objeto ya no es necesario".
 # 4. (Opcional) Explique el manejo de memoria en Rust.
 
 Cada proceso de un programa en Rust reserva cierta cantidad de memoria virtual por el sistema operativo, esta la la memoria total a la cual un proceso puede tener acceso.
