@@ -1,28 +1,23 @@
-# Seminario 16. Recolección automática de basura 
+# Seminario 16. Recolección automática de basura
 
 ## Integrantes:
 
-**David Orlando De Quesada Oliva C311**
+* **David Orlando De Quesada Oliva C311**
 
-**Javier Domínguez C312**
+* **Javier Domínguez C312**
 
-**Daniel de la Cruz C311**
+* **Daniel de la Cruz C311**
 
+# ¿En qué consiste la recolección automática de basura? Contraste contra el manejo manual en C++
 
-
-
-# ¿En qué consiste la recolección automática de basura? Contraste contra el manejo manual en C++.  ##
-
-
-
-La recolección automática de basura (**Garbage Collection**) es una forma de manejo de memoria, o sea, es un proceso que se encargar de liberar memoria que ha sido reservada, pero a la cual ya no hay ninguna referencia. Cabe destacar que el problema de decidir si un espacio de memoria es "basura", o sea, que no se va a utilizar más, es indecidible, por lo que los **Garbage Collectors** implementan una solución con ciertas restricciones a este problema. Generalmente los lenguajes de programación de alto nivel tienen **Garbage Collector** por defecto, aunque existe la excepción de _C++_ por ejemplo, el cual no lo tiene por defecto, pero se puede incorporar usando una librería. El principio de los **Garbage Collector** es:
+La recolección automática de basura (**Garbage Collection**) es una forma de manejo de memoria, o sea, es un proceso que se encargar de liberar memoria que ha sido reservada, pero a la cual ya no hay ninguna referencia. Cabe destacar que el problema de decidir si un espacio de memoria es "basura", o sea, que no se va a utilizar más, es indecidible, por lo que los **Garbage Collectors** implementan una solución con ciertas restricciones a este problema. Generalmente los lenguajes de programación de alto nivel tienen `Garbage Collector` por defecto, aunque existe la excepción de _C++_ por ejemplo, el cual no lo tiene por defecto, pero se puede incorporar usando una librería. El principio de los `Garbage Collector` es:
 
 1. Determinar que objetos de un programa no van a ser accedidos en el futuro.
 
 2. Liberar la memoria usada por estos objetos.
 
 La memoria que se asigna en tiempo de compilación es almacenada en el
-**stack**, mientras que la memoria que se asigna en tiempo de ejecución se almacena en el **heap**. _C++_ nos permite asignar la memoria de una variable en tiempo de ejecución. Esto se conoce como asignación de memoria dinámica. En otros lenguajes de programación como _Java_ y _Python_, el compilador gestiona automáticamente la memoria asignada a cada variable mediante el **Garbage Collector**, y al programador le es indistinto en donde se almacena esta variable, si en el **stack** o en el **heap**, pero este no es el caso en _C++_. En _C++_, si asignamos una variable dinámicamente, necesitamos liberar manualmente la memoria asignada a esta variable después de que no tengamos uso para ella. Podemos asignar y luego liberar memoria dinámicamente usando los operadores **new** y **delete** respectivamente como se muestra a continuación:
+**stack**, mientras que la memoria que se asigna en tiempo de ejecución se almacena en el **heap**. _C++_ nos permite asignar la memoria de una variable en tiempo de ejecución. Esto se conoce como asignación de memoria dinámica. En otros lenguajes de programación como _Java_ y _Python_, el compilador gestiona automáticamente la memoria asignada a cada variable mediante el `Garbage Collector`, y al programador le es indistinto en donde se almacena esta variable, si en el **stack** o en el **heap**, pero este no es el caso en _C++_. En _C++_, si asignamos una variable dinámicamente, necesitamos liberar manualmente la memoria asignada a esta variable después de que no tengamos uso para ella. Podemos asignar y luego liberar memoria dinámicamente usando los operadores `new` y `delete` respectivamente como se muestra a continuación:
 
 ```cpp
 #include <iostream>
@@ -37,29 +32,29 @@ int main ()
     // reservar memoria para la variable
     p = new(nothrow) int;
     if (!p)
-        cout << "allocation of memory failed\n";
+        cout << "Error al intentar reservar memoria\n";
     else {
         // Store value at allocated address
         *p = 29;
-        cout << "Value of p: " << *p << endl;
+        cout << "Valor de p: " << *p << endl;
     }
  
     // Reservar bloque de memoria usando new
     float *r = new float(75.25);
  
-    cout << "Value of r: " << *r << endl;
+    cout << "Valor de r: " << *r << endl;
  
     // Reservando bloque de memoria de tamaño n
     int n = 5;
     int *q = new(nothrow) int[n];
  
     if (!q)
-        cout << "allocation of memory failed\n";
+        cout << "Error al intentar reservar memoria\n";
     else {
         for (int i = 0; i < n; i++)
             q[i] = i+1;
  
-        cout << "Value store in block of memory: ";
+        cout << "Valor almacenado en bloque de memoria: ";
         for (int i = 0; i < n; i++)
             cout << q[i] << " ";
     }
@@ -75,9 +70,9 @@ int main ()
 }
 ```
 
-Cabe destacar que el **Garbage Collector** opera sobre el **heap**, no sobre el **stack**.
+Cabe destacar que el `Garbage Collector` opera sobre el **heap**, no sobre el **stack**.
 
-El **Garbage Collector** tiene sus ventajas y desventajas:
+El `Garbage Collector` tiene sus ventajas y desventajas:
 
 Ventajas:
 
@@ -91,19 +86,16 @@ Ventajas:
 
 Desventajas:
 
-Como es lógico el **Garbage Collector** es un programa por lo que consume poder de cómputo a la hora de decidir cuando liberar memoria reservada. El costo a pagar por tener un programa que se encarga de liberar y reservar memoria de forma óptima y automática es lo que se conoce como **overhead** en _Ciencias de la Computación_, que no es más que cualquier combinación de tiempo de cálculo, memoria, ancho de banda u otros recursos en exceso o indirectos que se requieren para realizar una tarea específica, lo que puede llevar a menor o desigual rendimiento, aunque en realidad es menos de lo que se asume que es. Varias investigaciones aseguran que los **Garbage Collector** necesitan 5 veces la memoria para compensar esta deficiencia y para funcionar igual de rápido que el mismo programa corriendo en un lenguaje con manejo explícito de memoria con una declaración ideal de este procedimiento en el código. Pero hay otras personas aseguran que los programadores rara vez escriben código de manejo de memoria de forma eficiente. Por tanto las siguientes propiedades son deseables en un **Garbage Collector**:
+Como es lógico el `Garbage Collector` es un programa por lo que consume poder de cómputo a la hora de decidir cuando liberar memoria reservada. El costo a pagar por tener un programa que se encarga de liberar y reservar memoria de forma óptima y automática es lo que se conoce como **overhead** en _Ciencias de la Computación_, que no es más que cualquier combinación de tiempo de cálculo, memoria, ancho de banda u otros recursos en exceso o indirectos que se requieren para realizar una tarea específica, lo que puede llevar a menor o desigual rendimiento, aunque en realidad es menos de lo que se asume que es. Varias investigaciones aseguran que los `Garbage Collector` necesitan 5 veces la memoria para compensar esta deficiencia y para funcionar igual de rápido que el mismo programa corriendo en un lenguaje con manejo explícito de memoria con una declaración ideal de este procedimiento en el código. Pero hay otras personas aseguran que los programadores rara vez escriben código de manejo de memoria de forma eficiente. Por tanto las siguientes propiedades son deseables en un `Garbage Collector`:
 
 1. Debe identificar la mayor parte de la basura.
 2. Todo lo que identifique como basura debe ser basura.
 3. Debería imponer un costo (**overhead**) de tiempo adicional bajo.
 4. Durante la recolección de basura, el programa puede pausarse; estas pausas deben ser breves.
 
-La mayoría de los **Garbage Colector** en la actualidad poseen todas estas propiedades.
-
-
+La mayoría de los `Garbage Collector` en la actualidad poseen todas estas propiedades.
 
 # 2. Describa las diferentes estrategias de recolección automática. ¿Cuáles son las ventajas y desventajas de cada una? 
-
 
 ### **Reference Counting (Conteo de referencias)**
 
@@ -237,7 +229,7 @@ Algunos avances en la recolección de basura pueden entenderse como reacciones a
 
 
 
-# 3. Enumere brevemente las propuestas más comunes en los lenguajes de programación C#,Python, Java, Go y JavaScript.
+# 3. Enumere brevemente las propuestas más comunes en los lenguajes de programación _C#_,_Python_, _Java_, _Go_ y _JavaScript_.
 
 
 
@@ -344,7 +336,7 @@ b = 4
 
 El valor literal 9 es un objeto. El __reference count__ del objeto 9 es incrementado a 1 en la línea 1. En la línea 2 este reference count llega  a 0 y es desreferenciado el objeto. Por tanto el garbage collector libera(deallocates) el objeto.
 
-Formas de hacer un objeto ilegible para el ``garbage collection``:
+Formas de hacer un objeto ilegible para el `Garbage Collector`:
 
 ```Python
 x = []
@@ -378,7 +370,7 @@ Output:
 Garbage collection thresholds: (700, 10, 10) 
 ```
 
-Aquí, el ``threshold`` por defecto en el sistema es 700. Esto significa que el número de allocations vs el número de deallocations tiene que ser mayor que 700 para que el garbage collector automático se ejecute. Por esto qualquier porción de tu código que libere gran cantidad de bloques de memoria es un buen candidato por correr el ``garbage collection`` manual.
+Aquí, el ``threshold`` por defecto en el sistema es 700. Esto significa que el número de allocations vs el número de deallocations tiene que ser mayor que 700 para que el garbage collector automático se ejecute. Por esto qualquier porción de tu código que libere gran cantidad de bloques de memoria es un buen candidato por correr el `Garbage Collector` manual.
 
 ### Garbage Collection Manual:
 
@@ -407,7 +399,7 @@ Output:
 ('Garbage collector: collected', '0 objects.')
 ```
 
-Si pocos ciclos son creados, como el trabaja el colector de forma manual:
+Si pocos ciclos son creados, como el trabaja el recolector de forma manual:
 
 ```Python
 
@@ -474,11 +466,11 @@ Para liberar memoria, la JVM debe detener la ejecución de la aplicación durant
 
 Las implementaciones modernas de **recolección de basura** intentan minimizar las detenciones en la ejecución del programa como consecuencia del "stop-the-world" haciendo todo el trabajo posible en segundo plano (es decir, utilizando un hilo separado), por ejemplo, marcando instancias de basura inaccesibles mientras el proceso de la aplicación continúa ejecutándose.
 
-Las JVM modernas como **Azul Zing** utilizan el colector de compactación continuamente concurrente (C4), que elimina las pausas de recolección que limitan la escalabilidad en el caso de las JVM convencionales.
+Las JVM modernas como **Azul Zing** utilizan el recolector de compactación continuamente concurrente (C4), que elimina las pausas de recolección que limitan la escalabilidad en el caso de las JVM convencionales.
 
 La JVM tradicional de Oracle HotSpot tiene cuatro formas de realizar la actividad de **recolección de basura**:
 
-* Serie donde solo un hilo ejecutó el GC
+* Serie donde solo un hilo ejecutó el GC (`Garbage Collection`)
 * Paralelo donde se ejecutan varios subprocesos menores simultáneamente, cada uno de los cuales ejecuta una parte de la **recolección de basura**.
 * Concurrent Mark Sweep (CMS), que es similar al paralelo, también permite la ejecución de algunos subprocesos de aplicación y reduce la frecuencia del "stop-the-world".
 * G1, que también se ejecuta en paralelo y al mismo tiempo, pero funciona de manera diferente a CMS.
@@ -489,7 +481,7 @@ Primero que todo el recolector de basura de _Go_ es un recolector de basura **no
 
  _Go_ prefiere asignar memoria en el **stack**, por lo que la mayoría de las asignaciones de memoria terminarán allí. Esto significa que _Go_ tiene una **stack** por **goroutine** y, cuando sea posible, _Go_ asignará variables a esta **stack**. El compilador de _Go_ intenta probar que no se necesita una variable fuera de la función realizando un análisis de escape para ver si un objeto "escapa" de la función. Si el compilador puede determinar la duración de una variable, se asignará a una **stack**. Sin embargo, si la vida útil de la variable no está clara, se asignará en el **heap**. Generalmente, si un programa _Go_ tiene un puntero a un objeto, ese objeto se almacena en el **heap**.
 
- La hipótesis generacional asume que los objetos de corta duración, como las variables temporales, se liberan con mayor frecuencia. Por lo tanto, un **Garbage Collector** generacional se centra en los objetos asignados recientemente. Sin embargo, mencionamos previamente, las optimizaciones del compilador permiten que el compilador de _Go_ asigne objetos con una vida útil conocida al **stack**. Esto significa que habrá menos objetos en el **heap**, por lo que se recolectarán menos objetos como basura. Esto significa que un **Garbage Collector** generacional no es necesario en _Go_. Entonces, _Go_ usa un recolector de basura no generacional. Concurrente significa que el **Garbage Collector** se ejecuta al mismo tiempo que los restantes hilos del programa. Por lo tanto, _Go_ utiliza un recolector de basura **concurrente**, **no generacional**, **marca y barrido** (mark and sweep) es el tipo de **Garbage Collector** y **tricolor** es el algoritmo utilizado para implementar esto.
+ La hipótesis generacional asume que los objetos de corta duración, como las variables temporales, se liberan con mayor frecuencia. Por lo tanto, un `Garbage Collector` generacional se centra en los objetos asignados recientemente. Sin embargo, mencionamos previamente, las optimizaciones del compilador permiten que el compilador de _Go_ asigne objetos con una vida útil conocida al **stack**. Esto significa que habrá menos objetos en el **heap**, por lo que se recolectarán menos objetos como basura. Esto significa que un `Garbage Collector` generacional no es necesario en _Go_. Entonces, _Go_ usa un recolector de basura no generacional. Concurrente significa que el `Garbage Collector` se ejecuta al mismo tiempo que los restantes hilos del programa. Por lo tanto, _Go_ utiliza un recolector de basura **concurrente**, **no generacional**, **marca y barrido** (mark and sweep) es el tipo de `Garbage Collector` y **tricolor** es el algoritmo utilizado para implementar esto.
 
 ## _JavaScript_
 
@@ -589,7 +581,7 @@ Cada proceso de un programa en Rust reserva cierta cantidad de memoria virtual p
 
 <img src="./Images/rust1.png" style="zoom: 67%;" />
 
-Como se puede observar no hay memoria generacional ni ninguna substructura compleja compleja como los recolectores de basura(`garbage collection`) están involucradas. La razón de esto es que **Rust** maneja la memoria como parte de la ejecución del programa durante el runtime usando el modelo de ``Ownership`` en vez de usar algun tipo de `garbage collection`.
+Como se puede observar no hay memoria generacional ni ninguna substructura compleja como los recolectores de basura(`garbage collection`) están involucradas. La razón de esto es que **Rust** maneja la memoria como parte de la ejecución del programa durante el runtime usando el modelo de ``Ownership`` en vez de usar algun tipo de `garbage collection`.
 
 ### Heap:
 Aquí es donde se guarda todos los datos dinámicos(cualquier dato cuyo tamaño no puede calcularse en tiempo de compilación).  Este es el bloque más grande de memoria y la parte manejada por ``el modelo de Ownership de Rust``.
@@ -599,7 +591,7 @@ El tipo ``Box`` es una abstracción para un valor asignado al heap en Rust(``hea
 
 ### **Stack:**
 
-El área de memoria del stack (stack memory área) es donde se guardan los valores estáticos por defecto. Hay un stack por cada hilo(thread). Los datos estáticos ( datos cuyo tamaño es conocido en tiempo de compilación) incluyen , valores primitivos,function frames (los argumentos pasados a la función, las variables locales de la función, así como la dirección en memoria donde se está ejecutando la función) `Structs` y punteros(`pointers`) a datos dinámicos en el ``Heap``.
+El área de memoria del stack (stack memory area) es donde se guardan los valores estáticos por defecto. Hay un stack por cada hilo(thread). Los datos estáticos (datos cuyo tamaño es conocido en tiempo de compilación) incluyen, valores primitivos,function frames (los argumentos pasados a la función, las variables locales de la función, así como la dirección en memoria donde se está ejecutando la función) `Structs` y punteros(`pointers`) a datos dinámicos en el ``Heap``.
 
 ### Uso de la memoria en Rust (Stack vs Heap):
 
@@ -699,12 +691,13 @@ Como se pudo observar en las imágenes anteriores el Stack es manejado de manera
 Rus tiene una de las maneras más singulares para el manejo de memoria en el Heap y esto es lo que hace a Rust tan especial. Usa un concepto llamado ``ownership`` para manejar memoria.
 
 El ``ownership`` está definido por un conjunto de reglas:
+
 * Cada valor en _Rust_ debe tener una variable como su  **owner**
 * Solo puede haber un **owner** para una variable a la vez
 * Cuando el **owner** se sale del scope el valor será soltado liberando asi la memoria.
 
-
 **Ejemplo:**
+
 ```Rust
 fn main() {
     let foo = "value"; // owner is foo and is valid within this method
@@ -725,10 +718,11 @@ Entonces, al determinar el alcance de las variables con cuidado, podemos asegura
 
 ### **RAII**:
 
-``RAII`` significa ``Resource acquisition is initialization``. Esto no es algo nuevo de `Rust`, esto es tomado prestado de `C++`. Rust aplica `RAII` de mode que cuando se inicializa un valor, la variable posee los recursos asociados y se invoca a su destructor cuando la variable sale del alcance(scope)  liberando así los recursos.
+``RAII`` significa ``Resource acquisition is initialization``. Esto no es algo nuevo de `Rust`, esto es tomado prestado de `C++`. Rust aplica `RAII` de modo que cuando se inicializa un valor, la variable posee los recursos asociados y se invoca a su destructor cuando la variable sale del alcance(scope) liberando así los recursos.
 Esto asegura que nunca tendremos que liberar memoria de forma manual o preocuparnos por pérdidas de memoria(`memory leaks`).
 
 **Ejemplo:**
+
 ```Rust
 fn create_box(i: u32) {
     // Allocate a string on the heap
@@ -757,7 +751,7 @@ fn main() {
 
 ### **Borrowing y Borrow checker:**
 
-En Rust podemos pasar una variable por valor o por referencia y pasar una variable por referencia es denominado `borrowing`. Dado que solo tenemos un `owner` para un recurso a la vez, tenemos queu pedir prestado un recurso para usarlo sin apropiarnos de él. El compilador de Rust tiene un `borrow checker` que garantiza estáticamente que las referencias apuntan a objetos válidos y que las reglas del ownership no son violadas.
+En Rust podemos pasar una variable por valor o por referencia y pasar una variable por referencia es denominado `borrowing`. Dado que solo tenemos un `owner` para un recurso a la vez, tenemos que pedir prestado un recurso para usarlo sin apropiarnos de él. El compilador de Rust tiene un `borrow checker` que garantiza estáticamente que las referencias apuntan a objetos válidos y que las reglas del ownership no son violadas.
 
 **Ejemplo:**
 
