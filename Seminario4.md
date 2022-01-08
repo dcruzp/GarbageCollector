@@ -117,7 +117,7 @@ La principal ventaja del recuento de referencias sobre el seguimiento de la reco
 
 Los recuentos de referencias también son información útil para usar como entrada para otras optimizaciones de tiempo de ejecución. Por ejemplo, los sistemas que dependen en gran medida de objetos inmutables, como muchos lenguajes de programación funcional, pueden sufrir una penalización de eficiencia debido a las copias frecuentes. Sin embargo, si el compilador (o el sistema de tiempo de ejecución) sabe que un objeto en particular tiene solo una referencia (como hace la mayoría en muchos sistemas), y que la referencia se pierde al mismo tiempo que se crea un nuevo objeto similar (como en la sentencia de adición de cadena ```str ← str + "a"```), puede reemplazar la operación con una mutación en el objeto original.
 
-El recuento de referencia tiene dos desventajas  fundamentales sobre la recoleccion de basura restreo, las cuales requieren mecanismos adicionales para mejorarlas. 
+El recuento de referencia tiene dos desventajas  fundamentales sobre la recolección de basura, las cuales requieren mecanismos adicionales para mejorarlas.
 
   - Las frecuentes actualizaciones que implica son una fuente de ineficiencia. Si bien el seguimiento de los recolectores de basura puede afectar gravemente la eficiencia a través del cambio de contexto y las fallas de la línea de caché, se recolectan con relativa poca frecuencia, mientras que el acceso a los objetos se realiza de forma continua. Además, lo que es menos importante, el recuento de referencias requiere que cada objeto gestionado por memoria reserve espacio para un recuento de referencias. Al rastrear recolectores de basura, esta información se almacena implícitamente en las referencias que hacen referencia a ese objeto, ahorrando espacio, aunque rastrear recolectores de basura, particularmente los incrementales, puede requerir espacio adicional para otros propósitos.
  
@@ -144,7 +144,7 @@ Este algoritmo reduce la definición de "un objeto ya no es necesitado" a "un ob
 
 **Fase 1:Marcado**(`Mark phase`)
 
-Cuando un objeto es creado, su `mark bit` se establece como `0`(false). En la fase de Marcado,  seteamos el `mark bit` de todos los objetos alcanzables a `1`(true). Para hacer esto operación simplemente necesitamos hacer un recorrido en un grafo, un DFS funcionaría en este caso. Si consideramos cada objeto como un nodo y luego se visitan todos los nodos(objetos) que son accesibles desde este node(objeto) y así se continúa hasta que hayamos visitida todos los nodos accesibles.
+Cuando un objeto es creado, su `mark bit` se establece como `0`(false). En la fase de Marcado,  seteamos el `mark bit` de todos los objetos alcanzables a `1`(true). Para hacer esto operación simplemente necesitamos hacer un recorrido en un grafo, un DFS funcionaría en este caso. Si consideramos cada objeto como un nodo y luego se visitan todos los nodos(objetos) que son accesibles desde este node(objeto) y así se continúa hasta que hayamos visitado todos los nodos accesibles.
 
 * La raíz es una variable que se refiere a un objeto y es directamente accesible por una variable local. Supondremos que tenemos una sola raíz.
 * Podemos acceder al mark bit de un objeto mediante `markedBit(obj)`
@@ -159,7 +159,7 @@ If markedBit(root) = false then
                                        Mark(v)
 ```
 
-**Si tenemos más de una raíz, simplemente tenemos que llamar a Mark() para todas las varibles raíz (root variables).**
+**Si tenemos más de una raíz, simplemente tenemos que llamar a Mark() para todas las variables raíz (root variables).**
 
 **Fase 2: Barrido(Sweep Phase)**
 
@@ -204,16 +204,16 @@ La siguiente visualización muestra el proceso:
 
 Traicing garbage collection es una forma de manejo de memoria automática que consiste en determinar que objetos deben ser liberados. Rastreando que objetos son alcanzables por una cadena de referencias de ciertas objetos "root", y considerando el resto como "basura" y recolectando estos. Traicing garbage collection es la forma mas común de recolección de basura, tanto es así que "garbage collection" se refiere a "traicing garbage collection", en lugar de a otros métodos como el conteo de referencias, y hay una gran cantidad de algoritmos utilizados en la implementación.
 
-## Accecibilidad de un objeto
+## Accesibilidad de un objeto
 
-Informalmente un objeto es accesible si este es referenciado por al menos una variable en el programa, ya sea directamente o mediante referencias de otros objetos accesibles. Más especificamente, se puede acceder a los objetos solo de dos formas:
+Informalmente un objeto es accesible si este es referenciado por al menos una variable en el programa, ya sea directamente o mediante referencias de otros objetos accesibles. Más específicamente, se puede acceder a los objetos solo de dos formas:
 
-- Un distiguido conjunto de roots: objetos que son asumidos son alcanzables. Típicamente, eso include todos los objetos referenciados de cualquier parte en la "Pila de llamadas"(que son todas las variables y parámetros locales en la función que se estan invocando actualmente) y cualquier variable global.
+- Un distinguido conjunto de roots: objetos que son asumidos son alcanzables. Típicamente, eso include todos los objetos referenciados de cualquier parte en la "Pila de llamadas"(que son todas las variables y parámetros locales en la función que se están invocando actualmente) y cualquier variable global.
 - cualquier referencia de un objeto accesible es accesible, más formalmente, la accesibilidad es transitiva.
 
 La definición de accesibilidad de "basura" no es óptima, en la medida en que la última vez que un programa usa un objeto podría ser mucho antes de que ese objeto caiga fuera del alcance del entorno. A veces se hace una distinción entre basura sintáctica (aquellos objetos que el programa posiblemente no pueda alcanzar) y basura semántica (esos objetos que el programa nunca volverá a usar)
 
-El problema de identificar con precisión la basura semántica es parciamente decidible: un programa que asigna un objeto `x`, ejecuta un programa de entrada arbitrario `p` termina, requeriria un recolector de basura semántica para resolver resolver el problema de la detección. Aunque los métodos heurísticos conservadores para las detección de basura semántica siguen siendo un área de investigación activa, escencialmente todos los recolectores de basura prácticos se enfocan en la basura sintáctica.
+El problema de identificar con precisión la basura semántica es parcialmente decidible: un programa que asigna un objeto `x`, ejecuta un programa de entrada arbitrario `p` termina, requeriría un recolector de basura semántica para resolver resolver el problema de la detección. Aunque los métodos heurísticos conservadores para las detección de basura semántica siguen siendo un área de investigación activa, esencialmente todos los recolectores de basura prácticos se enfocan en la basura sintáctica.
 
 Otra complicación con este enfoque es que, en lenguajes con tipos de referencia y tipos por valor sin caja, el recolector de basura necesita de alguna manera poder distinguir que variables en la pila o campos en un objeto son valores regulares y cuales son referencias: en la memoria, un número entero y una referencia pueden parecerse. El recolector de basura necesita saber si tratar el elemento como una referencia y seguirlo, o si es un valor primitivo. Una solución común es el uso de punteros etiquetados.
 
@@ -231,7 +231,7 @@ El rendimiento de los recolectores de basura de seguimiento, tanto la latencia c
 
 En términos de rendimiento el seguimiento, por su naturaleza, requiere una sobrecarga de tiempo de ejecución implícita, aunque en algunos casos el costo amortizado puede ser extremadamente bajo, en algunos casos incluso menor que una instrucción por asignación o colección, superando la asignación de pila. La gestión manual de la memoria requiere sobrecarga debido a la liberación explícita de memoria, y el recuento de referencias tiene sobrecarga por incrementar y disminuir los recuentos de referencia y comprobar si el recuento se ha desbordado o ha caído a cero.
 
-En términos de latencia, los recolectores de basura simple de "stop-the-world" pausan la ejecución del programa para la recolección de basura, lo que puede suceder en momentos arbitrarios y tomar un tiempo arbitrario, lo que los hace inutilizable para la computación en tiempo real, especialmente los sistemas integrados, y no se ajustan bien a los sistemas interactivos o cualquier situación en la que la baja latencia sea una prioridad. Sin embrago, los recolectores de basura incrementales pueden proporcionar garantías estrictas en tiempo real y en sistemas con tiempo de inactividad frecuente y suficiente memoria libre, como computadoras personales, la recoleccion de basura se puede programar tiempos de inactividad y tener un impacto mínimo en el rendimiento interactivo. La administración de memoria manual (como en _C++_) y el conteo de referencias tienen un problema similar de pausas arbitrariamente largas en caso de desasignar una estructura de datos grande y todos sus elementos secundarios, aunque esto solo ocurre en momentos fijos, no dependiendo de la recolección de basura.
+En términos de latencia, los recolectores de basura simple de "stop-the-world" pausan la ejecución del programa para la recolección de basura, lo que puede suceder en momentos arbitrarios y tomar un tiempo arbitrario, lo que los hace inutilizable para la computación en tiempo real, especialmente los sistemas integrados, y no se ajustan bien a los sistemas interactivos o cualquier situación en la que la baja latencia sea una prioridad. Sin embrago, los recolectores de basura incrementales pueden proporcionar garantías estrictas en tiempo real y en sistemas con tiempo de inactividad frecuente y suficiente memoria libre, como computadoras personales, la recolección de basura se puede programar tiempos de inactividad y tener un impacto mínimo en el rendimiento interactivo. La administración de memoria manual (como en _C++_) y el conteo de referencias tienen un problema similar de pausas arbitrariamente largas en caso de desasignar una estructura de datos grande y todos sus elementos secundarios, aunque esto solo ocurre en momentos fijos, no dependiendo de la recolección de basura.
 
 Algunos avances en la recolección de basura pueden entenderse como reacciones a problemas de rendimiento. Los primeros recolectores eran recolectores de "stop-the-world", pero el rendimiento de este enfoque distraía la atención de las aplicaciones interactivas. La recolección incremental evito esta interrupción, pero a costa de una menor eficiencia debido a la necesidad de barreras. Las técnicas de recolección generacional se utilizan con recolectores incrementales y "stop-the-world" para aumentar el rendimiento, la compensación es que parte de la basura no se detecta como tal durante más tiempo de lo normal.
 
@@ -248,20 +248,20 @@ La **recolección de basura** siempre funcionará en Managed **Heap** e internam
 
 La **recolección de basura** se produce si se cumple al menos una de varias condiciones. Estas condiciones se dan de la siguiente manera:
 
-* Si el sistema tiene poca memoria fisica, entonces las recoleccion de basura es necesaria.
+* Si el sistema tiene poca memoria física, entonces las recolección de basura es necesaria.
 * Si la memoria asignada a varios objetos en la memoria del **heap** excede un el espacio preestablecido, entonces ocurre la **recolección de basura**.
 * Si se llama al método ```gc.Collect```, se produce la **recolección de basura**. Sin embargo, este método solo se llama en situaciones inusuales, ya que normalmente el recolector de basura se ejecuta automáticamente.
 
-Existen 3 fases principales en la recoleccion de basura:
+Existen 3 fases principales en la recolección de basura:
    **Marking Phase(Fase de marcado):** se crea una lista de todos los objetos activos durante la fase de marcado. Esto se hace siguiendo las referencias de todos los objetos raíz. Todos los objetos que no están en la lista de objetos activos se eliminan potencialmente de la memoria del **heap**.
-   **Relocating Phase(Fase de reubicación):**: Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se reubicarán los objetos en la fase de compactación. 
+   **Relocating Phase(Fase de reubicación):**: Las referencias de todos los objetos que estaban en la lista de todos los objetos vivos se actualizan en la fase de reubicación para que apunten a la nueva ubicación donde se rebuscarán los objetos en la fase de compactación. 
    **Compacting Phase(Fase de compactación)**: El **heap** se compacta en la fase de compactación a medida que se libera el espacio ocupado por los objetos muertos y se mueven los objetos vivos restantes. Todos los objetos activos que quedan después de la recolección de elementos no utilizados se mueven hacia el extremo anterior de la memoria del **heap** en su orden original.
 
-La memoria del **heap** está organizada en 3 generaciones para que varios objetos con diferentes tiempos de vida puedan manejarse apropiadamente durante la **recolección de basura**. Common Language Runtime (CLR) proporcionará la memoria a cada generación en función del tamaño del proyecto. Internamente, Optimization Engine llamará al método de medios de recolección para seleccionar qué objetos entrarán en la generación 1 o la generación 2.
+La memoria del **heap** está organizada en 3 generaciones para que varios objetos con diferentes tiempos de vida puedan manejarse apropiadamente durante la **recolección de basura**. Common Language Runtime (CLR) proporcionará la memoria a cada generación en función del tamaño del proyecto. Internamente, Optimización Engine llamará al método de medios de recolección para seleccionar qué objetos entrarán en la generación 1 o la generación 2.
 
 - **Generación 0:** todos los objetos de corta duración, como las variables temporales, están contenidos en la generación 0 de la memoria del **heap**. Todos los objetos recién asignados también son objetos de generación 0 implícitamente a menos que sean objetos grandes. En general, la frecuencia de **recolección de basura** es la más alta en la generación 0. 
-- **Generación 1:** si el espacio ocupado por algunos objetos de generación 0 que no se liberan en una ejecución de **recolección de basura**, estos objetos se mueven a la generación 1. Los objetos de esta generación son una especie de búfer entre los objetos de corta duración en la generación 0 y los objetos longevos de la generación 2. 
-- **Generacion 2:** si el espacio ocupado por algunos objetos de la generación 1 que no se liberan en la siguiente ejecución de **recolección de basura**, estos objetos se mueven a la generación 2. Los objetos de la generación 2 tienen una vida larga, como los objetos estáticos, ya que permanecen en la memoria del **heap**. durante todo el proceso.
+- **Generación 1:** si el espacio ocupado por algunos objetos de generación 0 que no se liberan en una ejecución de **recolección de basura**, estos objetos se mueven a la generación 1. Los objetos de esta generación son una especie de búfer entre los objetos de corta duración en la generación 0 y los objetos longevos de la generación 2.
+- **Generación 2:** si el espacio ocupado por algunos objetos de la generación 1 que no se liberan en la siguiente ejecución de **recolección de basura**, estos objetos se mueven a la generación 2. Los objetos de la generación 2 tienen una vida larga, como los objetos estáticos, ya que permanecen en la memoria del **heap**. durante todo el proceso.
 
 La **recolección de basura** de una generación implica la **recolección de basura** de todas sus generaciones más jóvenes. Esto significa que se liberan todos los objetos de esa generación en particular y sus generaciones más jóvenes. Por este motivo, la recolección de elementos no utilizados de la generación 2 se denomina recolección de elementos no utilizados completa, ya que se liberan todos los objetos de la memoria dinámica. Además, la memoria asignada a la Generación 2 será mayor que la memoria de la Generación 1 y, de manera similar, la memoria de la Generación 1 será mayor que la memoria de la Generación 0 (Generación 2> Generación 1> Generación 0).
 
@@ -273,9 +273,9 @@ El proceso de reservar y liberar memoria en _Python_ es automático. El programa
 * Reference Counting
 * Garbage Collection
 
-**Reference Couting:**
+**Reference Counting:**
 
-Por ejemplo, supongamos que tenemos 2 o más variables que tienen el mismo valor, entonces, lo que la máquina virtual de _Python_ hace es, en vez de crear otro objeto del mismo valor en el **heap** privado, en realidad hace que la segunda variable apunte al valor que originalmente existía en el **heap** privado. Por lo tanto, en el caso de clases, tener un número de referencias puede ocupar una gran cantidad de espacio en memoria, en dicho caso referencing counting es altamente beneficioso para preservar la memoria disponible para otros objetos.
+Por ejemplo, supongamos que tenemos 2 o más variables que tienen el mismo valor, entonces, lo que la máquina virtual de _Python_ hace es, en vez de crear otro objeto del mismo valor en el **heap** privado, en realidad hace que la segunda variable apunte al valor que originalmente existía en el **heap** privado. Por lo tanto, en el caso de clases, tener un número de referencias puede ocupar una gran cantidad de espacio en memoria, en dicho caso Reference Counting es altamente beneficioso para preservar la memoria disponible para otros objetos.
 ### Ejemplo 1:
 
 ```Python
@@ -302,7 +302,7 @@ Output:
 x and y refer to the same object
 ```
 
-En el ejemplo anterior, ``y = x`` crea otra variable de referencia y la cual hace referencia al mismo objeto debido a que _Python_ optimiza la utilización de memoria haciendo la asignación (allocation) de una mismo referencia de un objeto a una nueva variable si este objeto ya existia previamente con el mismo valor.
+En el ejemplo anterior, ``y = x`` crea otra variable de referencia y la cual hace referencia al mismo objeto debido a que _Python_ optimiza la utilización de memoria haciendo la asignación (allocation) de una mismo referencia de un objeto a una nueva variable si este objeto ya existía previamente con el mismo valor.
 
 ![Example2](./Images/python2.png)
 
